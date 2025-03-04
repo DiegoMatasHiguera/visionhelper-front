@@ -54,7 +54,12 @@ export default {
       user_email: '',
       password: '',
       isLoading: false,
+      AppInfoStore: '',
     };
+  },
+  mounted() {    
+    this.AppInfoStore = useAppInfoStore();
+    this.AppInfoStore.seccion = "Login";
   },
   methods: {
     /**
@@ -64,9 +69,8 @@ export default {
     async login() {
       this.isLoading = true;
       
-      const authStore = useAuthStore()
-      const AppInfoStore = useAppInfoStore()
-      const urlLogin = AppInfoStore.environment+'/auth/login';
+      const authStore = useAuthStore();
+      const urlLogin = this.AppInfoStore.environment+'/auth/login';
 
       // Show loading popup
       this.statusPopup.showLoading('Conectando', 'Verificando credenciales...');
@@ -79,10 +83,14 @@ export default {
       try {
         const response = await axios.post(urlLogin, jsonEnvio);
 
-        const { access_token, refresh_token } = response.data;
+        const access_token = response.data["access_token"];
+        const refresh_token = response.data["refresh_token"];
 
-        // Store tokens
+        // Store tokens y usuario
         authStore.setTokens(access_token, refresh_token);
+        authStore.user_email = response.headers['user_email'];
+        authStore.user_name = response.headers['user_name'];
+        authStore.tipo = response.headers['tipo'];
 
         // Mostrar mensaje de éxito
         this.statusPopup.showSuccess('Conexión exitosa', 'Redireccionando...');

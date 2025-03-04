@@ -32,6 +32,11 @@
   margin: 0;
 }
 
+* {
+  scrollbar-width: 20px;
+  scrollbar-color: var(--color-fondo) var(--color-claro);
+}
+
 body {
   height: 100%;
   color: var(--color-principal);

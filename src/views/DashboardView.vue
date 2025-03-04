@@ -1,14 +1,14 @@
 <template>
   <div class="box">      
-      <button type="submit" class="button-big">
+      <button class="button-big" @click="getNumeroLotesNuevos">
         <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
         Perfil
       </button>
-      <button type="submit" class="button-big">
+      <button class="button-big">
         <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
         Perfil
       </button>
-      <button type="submit" class="button-big">
+      <button class="button-big">
         <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
         Perfil
       </button>
@@ -21,6 +21,7 @@
  * @description La página de origen de la aplicación, una vez logineado el usuario.
  */
 import protectedRoute from '@/helpers/protectedRoute';
+import { useAppInfoStore } from '@/stores/AppInfoStore';
 
 export default {
   name: 'DashboardView',
@@ -31,11 +32,14 @@ export default {
     return {
       numero_lotes_nuevos: 0,
       avisos_cualificaciones: false,
+      AppInfoStore: '',
     };
   },
-  // Called when the component is created
-  created() {
-    if (protectedRoute.accessProtectedRoute() != null) {
+  //Called when the component is created
+  mounted() {
+    if (protectedRoute.accessProtectedRoute() != null) {      
+      this.AppInfoStore = useAppInfoStore();
+      this.AppInfoStore.seccion = "Inicio";
       this.getNumeroLotesNuevos();
     } else {
       this.$router.push('/login');
@@ -72,8 +76,9 @@ export default {
 <style scoped>
 .button-icon {
   filter: var(--color-filter-principal);
-  width: 150px;
-  margin: 20px;
+  width: 120px;
+
+  margin-bottom: 25px;
 }
 
 .button-big {
@@ -81,6 +86,9 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  
+  width: 200px;
+  height: 225px;
 
   margin: 20px;
   
@@ -92,13 +100,12 @@ export default {
 .box {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
   overflow: visible; 
 
-  height: 100%;
+  height: 90%;
   width: 100%;
-  margin-top: 20px;
-  margin-bottom: 20px;
   background-color: transparent;
 }
 </style>

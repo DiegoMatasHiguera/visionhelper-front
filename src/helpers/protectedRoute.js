@@ -43,6 +43,7 @@ export function updateAuthInfo(response) {
     authStore.setAccessToken(response.headers['access_token']);
     // Resto info general una vez logineado:
     authStore.user_email = response.headers['user_email'];
+    authStore.user_name = response.headers['user_name'];
     authStore.tipo = response.headers['tipo'];
 }
 

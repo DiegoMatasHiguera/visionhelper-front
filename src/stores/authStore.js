@@ -5,6 +5,7 @@ export const useAuthStore = defineStore("auth",{
     accessToken: localStorage.getItem('access_token') || null,
     refreshToken: localStorage.getItem('refresh_token') || null,
     user_email: null,
+    user_name: null,
     tipo: null
   }),
   actions: {
@@ -18,11 +19,15 @@ export const useAuthStore = defineStore("auth",{
         this.accessToken = accessToken;        
         localStorage.setItem('access_token', accessToken);
     },
-    clearTokens() {
+    clearInfo() {
       this.accessToken = null;      
       localStorage.removeItem('access_token');
       this.refreshToken = null;
       localStorage.removeItem('refresh_token');
+
+      this.user_email = null;
+      this.user_name = null;
+      this.tipo = null;
     }
   }
 });
