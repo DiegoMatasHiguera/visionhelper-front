@@ -46,7 +46,7 @@ export default {
     </main>
 
     <footer>
-      <Footer v-if="showFooter" />
+      <Footer v-if="showFooter" :statusPopup="$refs.statusPopup" />
     </footer>
   </div>
 </template>
@@ -77,10 +77,10 @@ footer {
 main {
   flex: 1 1 auto; /* This makes it take up the remaining space */
   overflow-y: scroll;
+  padding-top: 20px;
 
   display: flex;
   justify-content: center;
-  align-items: center;
   background-color: var(--color-fondo);
 }
 </style>

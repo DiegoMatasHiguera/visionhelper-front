@@ -1,17 +1,9 @@
 <template>
   <div class="box">      
-      <button class="button-big" @click="getNumeroLotesNuevos">
-        <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
-        Perfil
-      </button>
-      <button class="button-big">
-        <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
-        Perfil
-      </button>
-      <button class="button-big">
-        <img src="@/assets/profile-icon.svg" alt="Perfil" class="button-icon" />
-        Perfil
-      </button>
+    <ButtonBig @click="irAPerfil"
+      :imagen="'/src/assets/profile-icon.svg'" 
+      texto="Perfil" 
+    />
   </div>
 </template>
 
@@ -22,9 +14,13 @@
  */
 import protectedRoute from '@/helpers/protectedRoute';
 import { useAppInfoStore } from '@/stores/AppInfoStore';
+import ButtonBig from '@/components/ButtonBig.vue';
 
 export default {
   name: 'DashboardView',
+  components: {
+    ButtonBig
+  },
   props: {
     statusPopup: Object
   },
@@ -37,12 +33,11 @@ export default {
   },
   //Called when the component is created
   mounted() {
+    this.AppInfoStore = useAppInfoStore();
+    this.AppInfoStore.seccion = "Inicio";
+
     if (protectedRoute.accessProtectedRoute() != null) {      
-      this.AppInfoStore = useAppInfoStore();
-      this.AppInfoStore.seccion = "Inicio";
       this.getNumeroLotesNuevos();
-    } else {
-      this.$router.push('/login');
     }
   },
   methods: {
@@ -52,51 +47,32 @@ export default {
     */
     async getNumeroLotesNuevos() {     
       // Show loading popup
-      this.statusPopup.showLoading('Conectando', 'Recuperando información de lotes nuevos...');
+      const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información de lotes nuevos...');
       
-      const urlSolicitud = "/auth/login";
+      const urlSolicitud = "/lotes/nuevos";
 
       try {
         const response = await protectedRoute.accessProtectedRoute().get(urlSolicitud);
-        protectedRoute.updateAuthInfo(response);
 
         // Ocultar mensaje de carga
-        this.statusPopup.hide();
+        this.statusPopup.removePopup(idPopupLoading);
         
         // TODO: cargar la información de lotes nuevos
 
       } catch (error) {
-        protectedRoute.handleError(error, this.statusPopup, this.$router);
+        this.statusPopup.removePopup(idPopupLoading);
+        protectedRoute.handleError(error, this.statusPopup);
       }
-    }
+    },
+
+    irAPerfil() {
+      this.$router.push('/profile');
+    },
   }
 };
 </script>
 
 <style scoped>
-.button-icon {
-  filter: var(--color-filter-principal);
-  width: 120px;
-
-  margin-bottom: 25px;
-}
-
-.button-big {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  
-  width: 200px;
-  height: 225px;
-
-  margin: 20px;
-  
-  background-color: var(--color-oscuro);
-  
-  font-weight: var(--font-peso-bold);
-}
-
 .box {
   display: flex;
   flex-wrap: wrap;
@@ -104,7 +80,6 @@ export default {
   justify-content: center;
   overflow: visible; 
 
-  height: 90%;
   width: 100%;
   background-color: transparent;
 }

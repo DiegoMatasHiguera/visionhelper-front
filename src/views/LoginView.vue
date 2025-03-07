@@ -1,35 +1,28 @@
 <template>
   <div class="box">
     <form class="login-form" @submit.prevent="login">
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input 
-          type="email" 
-          id="email" 
-          v-model="user_email" 
-          class="form-input"
-          required
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <input 
-          type="password" 
-          id="password" 
-          v-model="password" 
-          class="form-input"
-          required
-        >
-      </div>
-      
+      <FormInput
+        label="Correo electrónico"
+        v-model="user_email"
+        type="email"
+        required
+      />      
+      <FormInput
+        label="Contraseña"
+        v-model="password"
+        type="password"
+        required
+      />      
       <div class="forgot-password">
         <a href="#">¿Olvidaste tu contraseña?</a>
       </div>
-      
-      <button type="submit" class="login-button" :disabled="isLoading">
+      <Button
+        texto="Entrar"
+        type="submit"
+        :disabled="isLoading"
+      >
         {{ isLoading ? 'Conectando...' : 'Entrar' }}
-      </button>
+      </Button>      
     </form>
   </div>
 </template>
@@ -43,9 +36,15 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore'
 import { useAppInfoStore } from '@/stores/AppInfoStore'
+import FormInput from '@/components/FormInput.vue';
+import Button from '@/components/Button.vue';
 
 export default {
   name: 'LoginView',
+  components: {
+    FormInput,
+    Button,
+  },
   props: {
     statusPopup: Object
   },
@@ -73,7 +72,7 @@ export default {
       const urlLogin = this.AppInfoStore.environment+'/auth/login';
 
       // Show loading popup
-      this.statusPopup.showLoading('Conectando', 'Verificando credenciales...');
+      const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Verificando credenciales...');
 
       const jsonEnvio = {
         user_email: this.user_email,
@@ -85,14 +84,15 @@ export default {
 
         const access_token = response.data["access_token"];
         const refresh_token = response.data["refresh_token"];
+        const user_email = response.data['user_email'];
+        const user_name = response.data['user_name'];
+        const tipo = response.data['tipo'];
 
-        // Store tokens y usuario
-        authStore.setTokens(access_token, refresh_token);
-        authStore.user_email = response.headers['user_email'];
-        authStore.user_name = response.headers['user_name'];
-        authStore.tipo = response.headers['tipo'];
+        // Store tokens, email, usuario y tipo
+        authStore.setInfo(access_token, refresh_token, user_email, user_name, tipo);
 
         // Mostrar mensaje de éxito
+        this.statusPopup.removePopup(idPopupLoading);
         this.statusPopup.showSuccess('Conexión exitosa', 'Redireccionando...');
 
         // Redireccionar al dashboard
@@ -111,6 +111,7 @@ export default {
         }
 
         // Error case with action button and callback
+        this.statusPopup.removePopup(idPopupLoading);
         this.statusPopup.showError("Error de conexión", errorMessage, {
           showButton: true,
           buttonText: 'Intentar de nuevo',
@@ -130,6 +131,12 @@ export default {
 .box {
   font-weight: var(--font-peso-semibold);
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  height: 100%;
   width: 100%;
   max-width: 600px;
   padding: 40px 20px;
@@ -140,55 +147,11 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
   width: 100%;
 }
 
-.form-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 25px;
+.login-form * {
+  margin-bottom: 20px;
 }
-
-label {
-  flex: 0 0 auto;
-  font-size: 30px;
-  text-align: right;
-}
-
-.form-input {
-  flex: 0 0 auto; /* Don't grow or shrink, maintain natural size */
-  
-  width: 60%;
-  height: 60px;
-  padding: 12px;
-  border: var(--color-oscuro) 4px solid;
-  border-radius: 8px;
-  background-color: var(--color-principal);
-
-  font-size: 20px;
-  color: var(--color-mas-oscuro);
-
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-.form-input:focus {
-  box-shadow: var(--shadow-focus-pequeno);
-}
-
-.forgot-password {
-  text-align: center;
-  font-size: 20px;
-
-  margin-bottom: 25px;
-}
-
-.login-button {
-  align-self: center;
-  
-  background-color: var(--color-oscuro);
-}
-
 </style>

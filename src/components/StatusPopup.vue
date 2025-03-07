@@ -1,75 +1,153 @@
 <template>
-  <transition name="popup-fade">
-    <div v-if="isVisible" class="popup-container" :class="popupType">
-      <div class="popup-content">
-        <div class="popup-icon">
-          <i :class="iconClass"></i>
+  <div class="popup-manager">
+    <transition-group name="popup-fade">
+      <div
+        v-for="popup in popups"
+        :key="popup.id"
+        class="popup-container"
+        :class="getPopupType(popup)"
+        :style="{ top: `${160 + (popups.indexOf(popup) * 100)}px` }"
+        @mouseenter="handlePopupEnter(popup)"
+        @mouseleave="handlePopupLeave(popup)"
+        @focusin="handlePopupEnter(popup)"
+        @focusout="handlePopupLeave(popup)"
+        tabindex="0"
+      >
+        <div class="popup-content">
+          <div class="popup-icon">
+            <i :class="getIconClass(popup.type)"></i>
+          </div>
+          <div class="popup-message">
+            <h3 class="popup-title">{{ popup.title }}</h3>
+            <p v-if="popup.message" class="popup-description">{{ popup.message }}</p>
+          </div>
+          <div class="close-button-container">
+            <svg class="timer-circle" v-if="popup.autoClose" width="30" height="30" viewBox="0 0 30 30">
+              <circle
+                cx="15"
+                cy="15"
+                r="12"
+                fill="transparent"
+                stroke="var(--color-claro)"
+                stroke-width="2"
+              />
+              <circle
+                cx="15"
+                cy="15"
+                r="12"
+                fill="transparent"
+                stroke="var(--color-oscuro)"
+                stroke-width="2.5"
+                stroke-dasharray="75.4"
+                :stroke-dashoffset="(popup.progress || 0) * 75.4"
+                transform="rotate(-90, 15, 15)"
+              />
+            </svg>
+            <button @click="removePopup(popup.id)" class="popup-close" aria-label="Close">
+              <span>&times;</span>
+            </button>
+          </div>
         </div>
-        <div class="popup-message">
-          <h3 class="popup-title">{{ title }}</h3>
-          <p v-if="message" class="popup-description">{{ message }}</p>
+        <div v-if="popup.showButton" class="popup-actions">
+          <button @click="handleAction(popup)" class="popup-button">{{ popup.buttonText }}</button>
         </div>
-        <button @click="hide" class="popup-close" aria-label="Close">
-          <span>&times;</span>
-        </button>
       </div>
-      <div v-if="showButton" class="popup-actions">
-        <button @click="handleAction" class="popup-button">{{ buttonText }}</button>
-      </div>
-    </div>
-  </transition>
+    </transition-group>
+  </div>
 </template>
 
 <script>
 /**
  * @component StatusPopup
- * @description A reusable popup component for displaying status messages, alerts, and loading states.
- * @example
- * // Basic usage
- * this.$refs.statusPopup.show('Success', 'Operation completed successfully');
- * 
- * // With more options
- * this.$refs.statusPopup.show({
- *   title: 'Error',
- *   message: 'Failed to save data',
- *   type: 'error',
- *   autoClose: false,
- *   showButton: true,
- *   buttonText: 'Try Again'
- * });
+ * @description Manages multiple status popups on screen simultaneously
  */
 export default {
   name: 'StatusPopup',
   data() {
     return {
-      isVisible: false,
-      title: '',
-      message: '',
-      type: 'info',
-      autoClose: true,
-      duration: 5000,
-      showButton: false,
-      buttonText: 'OK',
-      timer: null,
-      actionCallback: null
+      popups: [],
+      counter: 0,
+      timeoutIds: {}, // Store timeout IDs for each popup
+      animationFrameIds: {} // Store animation frame IDs for each popup
     }
   },
-  computed: {
+  methods: {
     /**
-     * @computed popupType
-     * @description Generates the CSS class for the popup based on its type
-     * @returns {string} CSS class name
+     * @method addPopup
+     * @description Adds a new popup to the display stack
      */
-    popupType() {
-      return `popup-${this.type}`;
+    addPopup(config) {
+      const id = this.counter++;
+      const popup = {
+        id,
+        title: config.title || '',
+        message: config.message || '',
+        type: config.type || 'info',
+        autoClose: config.autoClose !== undefined ? config.autoClose : true,
+        duration: config.duration || 3000,
+        showButton: config.showButton || false,
+        buttonText: config.buttonText || 'OK',
+        actionCallback: config.actionCallback || null,
+        active: false, // Track if mouse/focus is on popup
+        progress: 0, // Progress of countdown (0 to 1)
+        startTime: null, // When the countdown started
+        hasInteracted: config.hasInteracted !== undefined ? config.hasInteracted : false, // Flag to track if user has interacted with the popup. You can force an interaction to start timer
+      };
+      
+      this.popups.push(popup);
+      
+      // We'll start the countdown in handlePopupLeave when hasInteracted becomes true
+      this.handlePopupLeave(popup);
+      
+      return id; // Return popup ID for reference
     },
     
     /**
-     * @computed iconClass
-     * @description Returns the appropriate FontAwesome icon class based on the popup type
-     * @returns {string} FontAwesome icon class
+     * @method removePopup
+     * @description Removes a popup by ID
      */
-    iconClass() {
+    removePopup(id) {
+      // Clear any existing timeout and animation for this popup
+      if (this.timeoutIds[id]) {
+        clearTimeout(this.timeoutIds[id]);
+        delete this.timeoutIds[id];
+      }
+      
+      if (this.animationFrameIds[id]) {
+        cancelAnimationFrame(this.animationFrameIds[id]);
+        delete this.animationFrameIds[id];
+      }
+      
+      const index = this.popups.findIndex(popup => popup.id === id);
+      if (index !== -1) {
+        this.popups.splice(index, 1);
+      }
+    },
+    
+    /**
+     * @method handleAction
+     * @description Handles the button click action for a popup
+     */
+    handleAction(popup) {
+      if (typeof popup.actionCallback === 'function') {
+        popup.actionCallback();
+      }
+      this.removePopup(popup.id);
+    },
+    
+    /**
+     * @method getPopupType
+     * @description Gets the CSS class for the popup based on its type
+     */
+    getPopupType(popup) {
+      return `popup-${popup.type}`;
+    },
+    
+    /**
+     * @method getIconClass
+     * @description Returns the appropriate icon class based on popup type
+     */
+    getIconClass(type) {
       const iconMap = {
         success: 'fas fa-check-circle',
         error: 'fas fa-exclamation-circle',
@@ -77,117 +155,95 @@ export default {
         info: 'fas fa-info-circle',
         loading: 'fas fa-spinner fa-spin'
       };
-      return iconMap[this.type];
-    }
-  },
-  methods: {
-    /**
-     * @method show
-     * @description Shows the popup with the provided configuration
-     * @param {string|Object} titleOrConfig - Either a title string or a config object
-     * @param {string} [message] - The message to display (when first param is title string)
-     * @param {string} [type='info'] - Type of popup: 'success', 'error', 'warning', 'info', 'loading'
-     * @param {boolean} [autoClose=true] - Whether to auto-close the popup
-     * @param {number} [duration=5000] - Time in ms before auto-closing
-     * @param {boolean} [showButton=false] - Whether to show an action button
-     * @param {string} [buttonText='OK'] - Text for the action button
-     * @param {Function} [actionCallback] - Callback to execute when button is clicked
-     */
-    show(titleOrConfig, message, type = 'info', autoClose = true, duration = 5000, showButton = false, buttonText = 'OK', actionCallback = null) {
-      // Clear any existing timers
-      this.clearTimer();
-      
-      // Handle configuration object
-      if (typeof titleOrConfig === 'object') {
-        const config = titleOrConfig;
-        this.title = config.title || '';
-        this.message = config.message || '';
-        this.type = config.type || 'info';
-        this.autoClose = config.autoClose !== undefined ? config.autoClose : true;
-        this.duration = config.duration || 5000;
-        this.showButton = config.showButton || false;
-        this.buttonText = config.buttonText || 'OK';
-        this.actionCallback = config.actionCallback || null;
-      } else {
-        // Handle individual parameters
-        this.title = titleOrConfig;
-        this.message = message || '';
-        this.type = type;
-        this.autoClose = autoClose;
-        this.duration = duration;
-        this.showButton = showButton;
-        this.buttonText = buttonText;
-        this.actionCallback = actionCallback;
-      }
-      
-      // Show the popup
-      this.isVisible = true;
-      
-      // Start auto-close timer if needed
-      if (this.autoClose && this.duration > 0) {
-        this.startTimer();
-      }
-      
-      return this; // For method chaining
+      return iconMap[type];
     },
     
     /**
-     * @method hide
-     * @description Hides the popup
+     * @method handlePopupEnter
+     * @description Handles mouseenter/focusin events on a popup
      */
-    hide() {
-      this.clearTimer();
-      this.isVisible = false;
-      return this; // For method chaining
-    },
-    
-    /**
-     * @method handleAction
-     * @description Handles the button click action
-     */
-    handleAction() {
-      if (typeof this.actionCallback === 'function') {
-        this.actionCallback();
+    handlePopupEnter(popup) {
+      popup.active = true;
+      popup.hasInteracted = true; // Mark that user has interacted with this popup
+      
+      // Pause countdown animation
+      if (popup.autoClose && this.timeoutIds[popup.id]) {
+        clearTimeout(this.timeoutIds[popup.id]);
+        
+        if (this.animationFrameIds[popup.id]) {
+          cancelAnimationFrame(this.animationFrameIds[popup.id]);
+        }
       }
-      this.hide();
     },
     
     /**
-     * @method startTimer
-     * @description Starts the auto-close timer
-     * @private
+     * @method handlePopupLeave
+     * @description Handles mouseleave/focusout events on a popup
      */
-    startTimer() {
-      this.clearTimer();
-      this.timer = setTimeout(() => {
-        this.hide();
-      }, this.duration);
-    },
-    
-    /**
-     * @method clearTimer
-     * @description Clears the auto-close timer
-     * @private
-     */
-    clearTimer() {
-      if (this.timer) {
-        clearTimeout(this.timer);
-        this.timer = null;
+    handlePopupLeave(popup) {
+      popup.active = false;
+      
+      // Only start/resume countdown if user has interacted with this popup
+      if (popup.hasInteracted && popup.autoClose && popup.duration > 0) {
+        this.startCountdownAnimation(popup);
       }
+    },
+    
+    /**
+     * @method startCountdownAnimation
+     * @description Starts or resumes the countdown animation for a popup
+     */
+    startCountdownAnimation(popup) {
+      // Clear any existing timeout for this popup
+      if (this.timeoutIds[popup.id]) {
+        clearTimeout(this.timeoutIds[popup.id]);
+      }
+      
+      // Cancel any existing animation frame
+      if (this.animationFrameIds[popup.id]) {
+        cancelAnimationFrame(this.animationFrameIds[popup.id]);
+      }
+      
+      // Calculate remaining time based on current progress
+      const remainingTime = popup.progress !== undefined 
+        ? popup.duration * (1 - popup.progress) 
+        : popup.duration;
+      
+      // Set timeout to remove popup after remaining time
+      this.timeoutIds[popup.id] = setTimeout(() => {
+        this.removePopup(popup.id);
+      }, remainingTime);
+      
+      // Start the animation
+      popup.startTime = Date.now();
+      
+      const animate = () => {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - popup.startTime;
+        
+        // Calculate progress (0 to 1)
+        popup.progress = Math.min(elapsedTime / remainingTime, 1);
+        
+        // Continue animation until progress reaches 1
+        if (popup.progress < 1 && !popup.active) {
+          this.animationFrameIds[popup.id] = requestAnimationFrame(animate);
+        }
+      };
+      
+      // Start animation
+      this.animationFrameIds[popup.id] = requestAnimationFrame(animate);
     },
     
     /**
      * @method showSuccess
      * @description Shorthand to show a success popup
-     * @param {string} title - The popup title
-     * @param {string} [message] - The popup message
-     * @param {Object} [options] - Additional options
      */
     showSuccess(title, message = '', options = {}) {
-      return this.show({
+      return this.addPopup({
         title,
         message,
         type: 'success',
+        hasInteracted: true,
         ...options
       });
     },
@@ -195,16 +251,12 @@ export default {
     /**
      * @method showError
      * @description Shorthand to show an error popup
-     * @param {string} title - The popup title
-     * @param {string} [message] - The popup message
-     * @param {Object} [options] - Additional options
      */
     showError(title, message = '', options = {}) {
-      return this.show({
+      return this.addPopup({
         title,
         message,
         type: 'error',
-        autoClose: false,
         ...options
       });
     },
@@ -212,51 +264,89 @@ export default {
     /**
      * @method showWarning
      * @description Shorthand to show a warning popup
-     * @param {string} title - The popup title
-     * @param {string} [message] - The popup message
-     * @param {Object} [options] - Additional options
      */
     showWarning(title, message = '', options = {}) {
-      return this.show({
+      return this.addPopup({
         title,
         message,
         type: 'warning',
+        hasInteracted: true,
+        showDuration: 5000,
         ...options
       });
     },
     
     /**
      * @method showLoading
-     * @description Shorthand to show a loading popup
-     * @param {string} title - The popup title
-     * @param {string} [message] - The popup message
+     * @description Shows a loading popup and returns its ID
      */
     showLoading(title, message = '') {
-      return this.show({
+      return this.addPopup({
         title,
         message,
         type: 'loading',
         autoClose: false
       });
+    },
+    
+    /**
+     * @method clearAll
+     * @description Clears all popups
+     */
+    clearAll() {
+      // Clear all timeouts and animation frames
+      Object.keys(this.timeoutIds).forEach(id => {
+        clearTimeout(this.timeoutIds[id]);
+      });
+      
+      Object.keys(this.animationFrameIds).forEach(id => {
+        cancelAnimationFrame(this.animationFrameIds[id]);
+      });
+      
+      this.timeoutIds = {};
+      this.animationFrameIds = {};
+      this.popups = [];
     }
   },
   beforeUnmount() {
-    this.clearTimer();
+    // Clean up all timeouts and animation frames when component is unmounted
+    Object.keys(this.timeoutIds).forEach(id => {
+      clearTimeout(this.timeoutIds[id]);
+    });
+    
+    Object.keys(this.animationFrameIds).forEach(id => {
+      cancelAnimationFrame(this.animationFrameIds[id]);
+    });
   }
 }
 </script>
 
 <style scoped>
+.popup-manager {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
 .popup-container {
   position: fixed;
-  top: 160px;
   right: 20px;
-  z-index: 9999;
   width: 400px;
   background-color: var(--color-principal);
   border-radius: 8px;
   box-shadow: var(--shadow-focus-grande);
   overflow: hidden;
+  pointer-events: auto;
+  transition: top 0.3s ease;
+}
+
+.popup-container:hover, .popup-container:focus {
+  outline: 2px solid var(--color-resalte);
+  outline-offset: 2px;
 }
 
 .popup-content {
@@ -290,7 +380,28 @@ export default {
   color: var(--color-mas-oscuro);
 }
 
+.close-button-container {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .popup-close {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -299,6 +410,7 @@ export default {
   padding: 0;
   color: var(--color-oscuro);  
   box-shadow: none;
+  z-index: 1;
 }
 
 .popup-actions {
@@ -310,10 +422,8 @@ export default {
   padding: 8px 16px;
   border-radius: 4px;
   font-size: 16px;
-
   transition: background-color 0.3s ease-in-out;
   background-color: var(--color-oscuro);
-
   box-shadow: none;
 }
 
