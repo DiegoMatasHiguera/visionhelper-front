@@ -38,6 +38,8 @@ export default {
 
     if (protectedRoute.accessProtectedRoute() != null) {      
       this.getNumeroLotesNuevos();
+    } else {
+      this.$router.push('/login');
     }
   },
   methods: {

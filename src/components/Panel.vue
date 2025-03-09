@@ -16,17 +16,19 @@ export default {
 
 <style scoped>
 .panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-  width: 100%;
-  padding: 20px;
-  margin: 20px;
+    width: 100%;
+    padding: 20px;
+    margin: 20px;
 
-  border-radius: 8px;  
-  box-shadow: var(--shadow-button-sobreblanco);
-  background-color: var(--color-oscuro);
+    text-align: justify;
+
+    border-radius: 8px;  
+    box-shadow: var(--shadow-button-sobreblanco);
+    background-color: var(--color-oscuro);
 }
 </style>

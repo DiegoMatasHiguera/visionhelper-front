@@ -119,9 +119,9 @@ export default {
             this.password = ''; // Clear password field
           }
         });
+        
+        this.isLoading = false;
       }
-
-      this.isLoading = false;
     }
   }
 };

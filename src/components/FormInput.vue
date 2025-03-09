@@ -1,6 +1,6 @@
 <template>
   <div class="form-group">
-    <label :for="id">{{ label }}:</label>
+    <label :for="id">{{ label }}<span v-if="required" class="required">*</span>:</label>    
     <input 
       :type="type" 
       :id="id" 
@@ -130,6 +130,13 @@ label {
 
 .form-input[disabled]:hover {
   box-shadow: none;
+}
+
+.required {
+  color: var(--color-error);
+  font-size: 18px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 </style>

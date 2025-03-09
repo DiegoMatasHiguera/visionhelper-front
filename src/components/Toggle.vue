@@ -18,7 +18,7 @@
 
 <script>
 export default {
-  name: 'Checkbox',
+  name: 'Toggle',
   props: {
     id: {
       type: String,
@@ -97,6 +97,10 @@ export default {
   box-shadow: 0 0 6px var(--color-mas-oscuro);
 }
 
+.toggle-label:hover {
+  box-shadow: var(--shadow-focus-pequeno);
+}
+
 .toggle-label:after {
   content: '';
   position: absolute;
@@ -107,6 +111,10 @@ export default {
   background: var(--color-principal);
   border-radius: 50%;
   transition: 0.3s;
+}
+
+.toggle-input:checked + .toggle-label:hover {
+  box-shadow: var(--shadow-focus-pequeno);
 }
 
 .toggle-input:checked + .toggle-label {
@@ -127,6 +135,6 @@ export default {
 }
 
 .toggle-input:disabled + .toggle-label:after {
-  background: #c9c9c9;
+  background: var(--color-gris);
 }
 </style>

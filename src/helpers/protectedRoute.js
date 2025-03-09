@@ -19,7 +19,7 @@ export function accessProtectedRoute() {
     }
   });
   
-  if (authStore.accessToken != 'undefined' && authStore.refreshToken != 'undefined') {
+  if (authStore.accessToken != null && authStore.refreshToken != null) {
     // Add tokens to every request
     axiosClient.interceptors.request.use(config => {
       config.headers['access_token'] = authStore.accessToken;

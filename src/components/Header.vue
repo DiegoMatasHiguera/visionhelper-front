@@ -3,7 +3,7 @@
     <div class="logoMain">
       <div class="logoEImg">
         <router-link to="/profile"><img class="logoImg" alt="VisionHelper logo" src="@/assets/logo.svg"/></router-link>
-        <img class="foto" alt="Avatar picture" :src="avatar"/>
+        <img class="foto" alt="Avatar picture" :src="avatar" @error="handleImageError"/>
       </div>
       <div class="nombreYVersion">
         <router-link to="/"><span class="logoTitulo">VisionHelper</span></router-link>
@@ -77,6 +77,12 @@ export default {
       }
     },
 
+    handleImageError(event) {
+      console.error('Avatar failed to load:', event.target.src);
+      // Set a fallback image
+      this.avatar = new URL('@/assets/noavatar.png', import.meta.url).href;
+    },
+
     irAPerfil() {
       this.$router.push('/profile');
     },
@@ -120,8 +126,8 @@ export default {
   width: 40px;
   height: 40px;
   position: absolute;
-  left: 23px;
-  top: 20px;
+  left: 22px;
+  top: 21px;
   z-index: -1;
 
   border-radius: 50%; /* Creates a perfect circle */
@@ -198,8 +204,8 @@ export default {
   .foto {
     width: 25px;
     height: 25px;
-    left: 18px;
-    top: 15px;
+    left: 17px;
+    top: 16px;
   }
 
   .logoTitulo {
