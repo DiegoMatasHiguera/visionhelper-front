@@ -1,7 +1,7 @@
 <template>
   <div class="footerGeneral">
     <div class="campo-izq">(c) 2025 - Tomeitas Tecnologies S.L.</div>
-    <div class="campo"><span class  ="user_name">{{user_name}} - </span><a href="#" @click.prevent="desconectar">Logout</a></div>
+    <div class="campo"><span class="user_name" :title="'Grupo: '+this.authStore.tipo">{{user_name}} - </span><a href="#" @click.prevent="desconectar">Logout</a></div>
     <div class="campo-der"><router-link to="/">Acerca de</router-link></div>
   </div>
 </template>

@@ -2,11 +2,11 @@
   <div class="headerGeneral">
     <div class="logoMain">
       <div class="logoEImg">
-        <router-link to="/profile"><img class="logoImg" alt="VisionHelper logo" src="@/assets/logo.svg"/></router-link>
+        <router-link to="/profile"><img class="logoImg" alt="VisionHelper logo" :title="this.authStore.user_name + ' - ' + this.authStore.tipo" src="@/assets/logo.svg"/></router-link>
         <img class="foto" alt="Avatar picture" :src="avatar" @error="handleImageError"/>
       </div>
       <div class="nombreYVersion">
-        <router-link to="/"><span class="logoTitulo">VisionHelper</span></router-link>
+        <router-link to="/"><span class="logoTitulo" title="Ir a Inicio">VisionHelper</span></router-link>
         <span class="version">Cliente v.: {{clienteVersion}} </span>
       </div>
     </div>
