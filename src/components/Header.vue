@@ -10,8 +10,12 @@
         <span class="version">Cliente v.: {{clienteVersion}} </span>
       </div>
     </div>
-    <div class="seccion">
-      {{seccion}}
+    <div class="secciones" :class="{'secciones-with-product': this.AppInfoStore.producto != ''}">
+      <div v-if="this.AppInfoStore.producto != ''" class="subseccion">
+        <div :title="this.AppInfoStore.producto + ' | ' + this.AppInfoStore.lote + ' | ' + this.AppInfoStore.muestreo">{{ this.AppInfoStore.producto }}</div>
+        <div :title="this.AppInfoStore.producto + ' | ' + this.AppInfoStore.lote + ' | ' + this.AppInfoStore.muestreo">{{ this.AppInfoStore.lote }} | {{ this.AppInfoStore.muestreo }}</div>
+      </div>
+      <div :title="seccion" class="seccion" :class="{'seccion-with-product': this.AppInfoStore.producto != ''}">{{seccion}}</div>
     </div>
   </div>
 </template>
@@ -161,12 +165,30 @@ export default {
   filter: var(--shadow-titulo);
 }
 
-.seccion {
+.secciones {
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  padding-top: 5px;
+  padding-bottom: 5px;
+
+  position: relative;
+  right: -25px; /* Negative value extends to the right outside parent */
+  
+  box-shadow: var(--shadow-button-sobreblanco);  
+  border-radius: 8px 0px 0px 8px;
+}
+
+.secciones-with-product { 
+  box-shadow: none;
+}
+
+.secciones > * {
   font-family: var(--font-family-titulos);
-  font-size: 32px;
-  letter-spacing: 3px;
   font-weight: var(--font-peso-semibold);
-  color: var(--color-principal);
+  color: var(--color-principal);  
+  letter-spacing: 3px;
+  height: 60px;
   text-align: right;
   white-space: nowrap;        /* Prevent text from wrapping to a new line */
   overflow: hidden;           /* Hide any content that overflows */
@@ -177,19 +199,60 @@ export default {
   padding-top: 5px;
   padding-bottom: 5px;
 
-  position: relative;
-  right: -25px; /* Negative value extends to the right outside parent */
-  z-index: 1; /* Ensures it appears above other elements if needed */
-
   background-color: var(--color-fondo);
   border-radius: 8px 0px 0px 8px;
-  
-  box-shadow: var(--shadow-button-sobreblanco);
+}
+
+.seccion {
+  font-size: 32px;
+
+  z-index: 2; /* Ensures it appears above other elements if needed */
+}
+
+.seccion-with-product {
+  box-shadow: -4px 0px 2px 0px rgba(0, 0, 0, 0.25);
+}
+
+.subseccion {
+  display: flex;
+  flex-direction: column;
+
+  font-size: 20px;
+  letter-spacing: 1px;  
+  line-height: normal;
+
+  position: relative;
+  right: -10px;
+  z-index: 1;
+
+  box-shadow: var(--shadow-focus-pequeno);
 }
 
 @media (max-width: 750px) {
+  .secciones {
+    flex-direction: column-reverse;
+    overflow: visible;
+
+    max-height: 70px;
+  }
+
   .seccion {
-    font-size: 22px;
+    min-height: 40px;
+    font-size: 20px;
+  }
+
+  .subseccion {    
+    flex-direction: row;
+    top: 2%;  
+    min-height: 27px;
+
+    font-size: 14px;
+
+    z-index: 3;
+  }
+
+  .subseccion > * {
+    margin-right: 10px;
   }
 
   .logoEImg {

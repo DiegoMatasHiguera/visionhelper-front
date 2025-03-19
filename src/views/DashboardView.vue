@@ -14,7 +14,8 @@
       :imagen="'/src/assets/exam-icon.svg'" 
       texto="Exámenes"
       :texto_notificacion="texto_examenes_nuevos"
-      tipo_notificacion="roja" 
+      tipo_notificacion="roja"
+      disabled="true" 
     />
   </div>
 </template>
@@ -78,10 +79,14 @@ export default {
       // Show loading popup
       const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información de lotes nuevos...');
       
-      const urlSolicitud = "/tests/"+this.authStore.tipo;
+      const urlSolicitud = this.AppInfoStore.environment+"/tests/";
+      const jsonEnvio = {
+        tipo_usuario: this.authStore.tipo,
+        user_email: this.authStore.user_email,
+      };
 
       try {
-        const response = await protectedRoute.accessProtectedRoute().get(urlSolicitud);
+        const response = await protectedRoute.accessProtectedRoute().post(urlSolicitud, jsonEnvio);
 
         // Ocultar mensaje de carga
         this.statusPopup.removePopup(idPopupLoading);

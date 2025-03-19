@@ -28,7 +28,7 @@
           </div>
         </Panel>
         <Panel v-if="clickadoLote != ''" class="panel">
-          Seleccionar Test del Lote del Producto:
+          Seleccionar tipo de Test del Lote del Producto:
           <div class="lista">
             <Element
               v-for="test in this.tests_filtrados"
@@ -63,7 +63,7 @@ import Panel from '@/components/Panel.vue';
 import Element from '@/components/Element.vue';
 
 export default {
-  name: 'ProfileView',
+  name: 'LotesView',
   components: {
     Button,
     Panel,
@@ -164,16 +164,24 @@ export default {
       // Show loading popup
       const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información de tests nuevos...');
       
-      const urlSolicitud = "/tests/"+this.authStore.tipo;
+      const urlSolicitud = this.AppInfoStore.environment+"/tests/";
+      const jsonEnvio = {
+        tipo_usuario: this.authStore.tipo,
+        user_email: this.authStore.user_email,
+      };
 
       try {
-        const response = await protectedRoute.accessProtectedRoute().get(urlSolicitud);
+        const response = await protectedRoute.accessProtectedRoute().post(urlSolicitud, jsonEnvio);
 
         // Ocultar mensaje de carga
         this.statusPopup.removePopup(idPopupLoading);
         
-        // Cargar la información de tests nuevos
-        this.tests = response.data;
+        // Cargar la información de tests nuevos, exceptuando los exámenes
+        for (let i = 0; i < response.data.length; i++) {
+          if (!response.data[i].nombre_muestreo.includes("Examen")) {
+            this.tests.push(response.data[i]);
+          }
+        }
         
         return true;
       } catch (error) {
@@ -306,7 +314,7 @@ export default {
       // Almacenar el test en el store
       this.testStore.test_seleccionado = test;
 
-      this.$router.push(`/test/${test.id}`);
+      this.$router.push(`/muestreo/${test.id}`);
     },
 
     /**

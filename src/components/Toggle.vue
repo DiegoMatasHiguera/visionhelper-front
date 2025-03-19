@@ -53,7 +53,6 @@ export default {
 
 <style scoped>
 .form-group {
-  width: 100%;
   display: flex;
   align-items: center;
   margin-top: 7px;
@@ -62,7 +61,7 @@ export default {
 }
 
 .label {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   text-align: left;
   padding-right: 10px;
 }
@@ -134,7 +133,11 @@ export default {
   cursor: not-allowed;
 }
 
+.toggle-input:disabled + .toggle-label:hover {  
+  box-shadow: 0 0 6px var(--color-mas-oscuro);
+}
+
 .toggle-input:disabled + .toggle-label:after {
-  background: var(--color-gris);
+  background: var(--color-gris-oscuro);
 }
 </style>

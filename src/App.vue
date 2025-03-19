@@ -77,7 +77,9 @@ footer {
 main {
   flex: 1 1 auto; /* This makes it take up the remaining space */
   overflow-y: scroll;
-  padding-top: 20px;
+  padding-top: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
 
   display: flex;
   justify-content: center;

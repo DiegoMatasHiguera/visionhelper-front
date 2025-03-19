@@ -28,6 +28,8 @@ export default {
   text-align: center;
   border-radius: 8px;
 
+  font-weight: var(--font-peso-bold);
+
   padding: 15px;
   margin: 20px;
 }

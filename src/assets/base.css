@@ -9,6 +9,7 @@
   --color-blanco: #FFFFFF;     /* Blanco */
   --color-mas-oscuro: #011F33; /* Más oscuro */
   --color-gris: #a09aac;       /* Gris */
+  --color-gris-oscuro: #66636d;       /* Gris */
   --color-nuevo-elemento: linear-gradient(90deg, var(--color-claro) 75%, var(--color-resalte)); /* Nuevo Elemento */
   --color-seleccion: #CA8FFD;  /* Selección */
   --color-seleccion-semitransparente: rgba(202,143,253,0.25); /* Selección semitransparente */
