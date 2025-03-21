@@ -169,8 +169,6 @@ export default {
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  padding-top: 5px;
-  padding-bottom: 5px;
 
   position: relative;
   right: -25px; /* Negative value extends to the right outside parent */
@@ -181,6 +179,9 @@ export default {
 
 .secciones-with-product { 
   box-shadow: none;
+  
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .secciones > * {

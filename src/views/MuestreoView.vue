@@ -3,13 +3,13 @@
       <div class="paneles">
         <div class="panel">
           <Titulo :texto="tituloText" />
-          <FormInput v-model="num_bandejas" label="Nº bandejas" type="number"/>
-          <FormInput v-model="num_filas" label="Nº filas/bandeja" type="number"/>
-          <FormInput v-model="num_uds_fila" label="Nº unidades/fila" type="number"/>
+          <FormInput v-model="num_bandejas" label="Nº bandejas" type="number" @input="recalcular"/>
+          <FormInput v-model="num_filas" label="Nº filas/bandeja" type="number" @input="recalcular"/>
+          <FormInput v-model="num_uds_fila" label="Nº unidades/fila" type="number" @input="recalcular"/>
           <FormInput v-model="num_uds_total" label="Nº unidades totales" type="number"/>
           <div class="fila">            
-            <Toggle title="Pendiente implementar..." id="tresbolillo" v-model="tresbolillo" label="Tresbolillo" disabled/>
-            <Toggle title="Pendiente implementar..." id="alternado" v-model="alternado" label="Alternado" :disabled="!tresbolillo"/>
+            <Toggle id="tresbolillo" v-model="tresbolillo" label="Tresbolillo"/>
+            <Toggle id="alternado" v-model="alternado" label="Alternado" :disabled="alternado_disabled"/>
           </div>
         </div>
         <Panel class="muestreo">
@@ -22,6 +22,7 @@
           </div>
           <Muestreo 
             v-if="bandejas.length > 0"
+            :numMuestrasInicio="bandejas[bandeja_actual].numMuestrasInicio"
             :rows="bandejas[bandeja_actual].rows"
             :circlesPerRow="bandejas[bandeja_actual].circlesPerRow"
             :circlesPerBandeja="bandejas[bandeja_actual].circlesPerBandeja"
@@ -86,47 +87,32 @@ export default {
       muestras_a_tomar: 0,
       udsMuestreo: [],
       alternado: false,
+      alternado_disabled: true,
       tresbolillo: false,
     };
   },
   watch: {
-    // Re-generate bandejas when input parameters change
-    num_bandejas() {
-      if (this.num_bandejas < 1) {
-        this.num_bandejas = 1;
-      } else {        
-        this.num_uds_total = this.num_filas*this.num_uds_fila*this.num_bandejas;
-        this.generatePlanMuestreo();
-        this.generateBandejas();
-      }
-    },
-    num_filas() {
-      if (this.num_filas < 1) {
-        this.num_filas = 1;
+    // Disable alternado if tresbolillo is enabled
+    tresbolillo() {
+      if (!this.tresbolillo) {
+        this.alternado = false;
+        this.alternado_disabled = true;
       } else {
-        this.num_uds_total = this.num_filas*this.num_uds_fila*this.num_bandejas;
-        this.generatePlanMuestreo();
-        this.generateBandejas();
+        this.alternado_disabled = false;
       }
     },
-    num_uds_fila() {
-      if (this.num_uds_fila < 1) {
-        this.num_uds_fila = 1;
-      } else {
-        this.num_uds_total = this.num_filas*this.num_uds_fila*this.num_bandejas;
-        this.generatePlanMuestreo();
-        this.generateBandejas();
-      }
-    },
+    
+    // Re-generate bandejas when num_uds_total changes
     num_uds_total() {
       if (this.num_uds_total < 1) {
         this.num_uds_total = 1;
       } else if (this.num_uds_total > this.num_filas*this.num_uds_fila*this.num_bandejas) {
-        this.num_filas = Math.ceil(this.num_uds_total / this.num_uds_fila);
-      } else {
-        this.generatePlanMuestreo();
-        this.generateBandejas();
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas / this.num_bandejas);
+      } else if (this.num_uds_total < this.num_filas*this.num_uds_fila*(this.num_bandejas-1)) {
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas / this.num_bandejas);
       }
+      this.generatePlanMuestreo();
+      this.generateBandejas();
     },
   },
   //Called when the component is created
@@ -150,6 +136,18 @@ export default {
     }
   },
   methods: {
+    /**
+     * @method recalcular
+     * @description Recalcula el número de unidades totales.
+    */
+    recalcular() {
+      if (this.alternado) {
+        this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas - Math.floor(this.num_filas/2);
+      } else {
+        this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas;
+      }
+    },
+
     /**
      * @method getTestInfo
      * @description Recupera toda la información del test seleccionado.
@@ -228,7 +226,7 @@ export default {
           }
         }        
       } else if (this.testStore.muestreo_seleccionado.tipo == "sistemático") {
-        const puntoInicio = Math.floor(Math.random() * (this.num_uds_total-this.muestras_a_tomar));
+        var puntoInicio = Math.floor(Math.random() * (this.num_uds_total-this.muestras_a_tomar));
         var pasoActual = 0;
         while (muestrasRestantes > 0) {       
             var indice = puntoInicio+pasoActual;            
@@ -241,8 +239,8 @@ export default {
               pasoActual++;
             }
 
-            if (pasoActual >= this.num_uds_total) {
-              puntoInicio = pasoActual - this.num_uds_total;
+            if (indice >= this.num_uds_total) {
+              puntoInicio = indice - this.num_uds_total;
               pasoActual = 0;
             }
         }
@@ -262,7 +260,8 @@ export default {
      */
      generateBandejas() {
       this.bandejas = [];
-      
+      var numMuestrasInicio = 0;
+
       for (let i = 0; i < this.num_bandejas; i++) {
         var circlesPerBandeja = 0;
         const muestreoCircles = [];
@@ -273,23 +272,35 @@ export default {
         }
         
         // Metemos los índices de las muestras a tomar
+        var numMuestras = 0;
         for (let j = 0; j < this.udsMuestreo.length; j++) {
           if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
             muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
+            numMuestras++;
           }
+        }
+
+        var rowsFinal = this.num_filas;
+        if (this.alternado) {
+          const rowsCompletas = Math.floor(circlesPerBandeja/this.num_uds_fila);
+          const udsSkipped = Math.floor(rowsCompletas / 2);
+          rowsFinal += Math.floor((circlesPerBandeja%this.num_uds_fila + udsSkipped)/this.num_uds_fila);
         }
         
         this.bandejas.push({
-          rows: this.num_filas,
+          numMuestrasInicio: numMuestrasInicio,
+          rows: rowsFinal,
           circlesPerRow: this.num_uds_fila,
           circlesPerBandeja: circlesPerBandeja,
           muestreoCircles: muestreoCircles
         });
+
+        numMuestrasInicio += numMuestras;
       }
       
       // Reset current bandeja if out of bounds
-      if (this.bandeja_actual > this.num_bandejas) {
-        this.bandeja_actual = 1;
+      if (this.bandeja_actual >= this.num_bandejas) {
+        this.bandeja_actual = 0;
       }
     },
 
@@ -321,7 +332,9 @@ export default {
      * @method atras
      * @description Vuelve a la página anterior.
     */
-    atras() {
+    atras() {      
+      this.testStore.clearInfo();
+      this.AppInfoStore.clearInfoTest();
       this.$router.push('/lotes');
     },
 
@@ -372,7 +385,7 @@ export default {
   font-size: 16px;
   font-weight: var(--font-peso-medium);
   
-  min-width: 400px; 
+  min-width: 450px; 
 }
 
 .fila {

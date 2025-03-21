@@ -1,13 +1,16 @@
 <template>
     <div class="panel">
-      <div class="grid" :style="gridStyle">
+      <div class="grid" :class="{ 'tresbolillo': tresbolillo }" :style="gridStyle">
         <div 
-          v-for="index in circlesPerBandeja" 
+          v-for="index in actualCirclesPerBandeja" 
           :key="index"
           class="borde"
         >
-            <div class="circle" 
-            :class="{ 'muestreo': isMuestreoCircle(index-1) }"></div>
+            <div v-if="(!alternado) || (alternado && !isLastofRow(index))" class="circle" 
+            :class="{ 'muestreo': isMuestreoCircle(getAdjustedIndex(index)-1),
+              'tresbolillo': tresbolillo && isOddRow(index)}">
+                <span v-if="isMuestreoCircle(getAdjustedIndex(index)-1)">{{ getMuestraNumber(getAdjustedIndex(index)-1) }}</span>
+              </div>
         </div>
       </div>
     </div>
@@ -21,22 +24,50 @@
   export default {
     name: 'Muestreo',
     props: {
-      rows: {
-        type: Number,
-        required: true
-      },
-      circlesPerRow: {
-        type: Number,
-        required: true
-      },
-      circlesPerBandeja: {
-        type: Number,
-        required: true
-      },
-      muestreoCircles: {
-        type: Array,
-        default: () => []
-      }
+        numMuestrasInicio: {
+            type: Number,
+            required: true
+        },  
+        rows: {
+            type: Number,
+            required: true
+        },
+        circlesPerRow: {
+            type: Number,
+            required: true
+        },
+        circlesPerBandeja: {
+            type: Number,
+            required: true
+        },
+        muestreoCircles: {
+            type: Array,
+            default: () => []
+        },
+        tresbolillo: {
+            type: Boolean,
+            default: false
+        },
+        alternado: {
+            type: Boolean,
+            default: false
+        },
+    },
+    data() {
+        return {
+        muestraNumbers: {}
+        };
+    },
+    watch: {
+        muestreoCircles() {
+            // Pre-calculate all sample numbers
+            let currentNum = this.numMuestrasInicio;
+            this.muestraNumbers = {};
+            for (const index of this.muestreoCircles) {      
+                this.muestraNumbers[index] = currentNum + 1;
+                currentNum++;
+            }
+        }
     },
     computed: {
       gridStyle() {
@@ -45,54 +76,94 @@
           'grid-template-rows': `repeat(${this.rows}, 1fr)`,
           'aspect-ratio': `${this.circlesPerRow} / ${this.rows}`
         };
+      },
+      actualCirclesPerBandeja() {
+        if (this.alternado) {
+            const rowsCompletas = Math.floor(this.circlesPerBandeja/this.circlesPerRow);
+            return this.circlesPerBandeja + Math.floor(rowsCompletas / 2);
+        } else {
+            return this.circlesPerBandeja;
+        }
       }
     },
     methods: {
-      isMuestreoCircle(index) {
-        return this.muestreoCircles.includes(index);
-      }
+        isMuestreoCircle(index) {
+            return this.muestreoCircles.includes(index);
+        },
+        isOddRow(index) {
+            const row = Math.ceil(index / this.circlesPerRow);
+            return row % 2 === 0;
+        },
+        isLastofRow(index) {
+            if (this.isOddRow(index)) {
+                return index % this.circlesPerRow === 0;
+            } else {
+                return false;
+            }
+        },
+        getAdjustedIndex(index) {
+            // Calculate how many circles have been skipped before this position
+            const row = Math.ceil(index / this.circlesPerRow);
+            const skippedCircles = this.alternado ? Math.floor(row / 2) : 0;
+            return index - skippedCircles;
+        },
+        getMuestraNumber(index) {
+            return this.muestraNumbers[index] || '';
+        }
     }
   };
   </script>
   
   <style scoped>
-  .panel {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: start;
-    overflow: scroll;
+    .panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+        overflow: scroll;
+        
+        width: 100%;
+        height: 300px;
+        max-height: 400px;
+        padding: 20px;
+        margin: 20px;
+        
+        border-radius: 8px;  
+        box-shadow: var(--shadow-button-sobreblanco);
+        background-color: var(--color-mas-oscuro);
+    }
     
-    width: 100%;
-    height: 300px;
-    max-height: 400px;
-    padding: 20px;
-    margin: 20px;
-    
-    border-radius: 8px;  
-    box-shadow: var(--shadow-button-sobreblanco);
-    background-color: var(--color-mas-oscuro);
-  }
-  
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(var(--circles-per-row), 1fr);
-    gap: 10px;
-    width: 100%;
-    max-width: 500px;
-  }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(var(--circles-per-row), 1fr);
+        gap: 2%;
+        width: 100%;
+        max-width: 500px;
+    }
 
-  .borde {
-    position: relative;
-  }
-  
-  .circle {
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background-color: var(--color-principal);
-  }
-  
-  .circle.muestreo {
-    background-color: var(--color-resalte);
-  }
-  </style>
+    .grid.tresbolillo {
+        gap: 1%;
+    }
+
+    .borde {
+        position: relative;
+    }
+    
+    .circle {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background-color: var(--color-principal);
+    }
+    
+    .circle.muestreo {
+        background-color: var(--color-resalte);
+        color: var(--color-mas-oscuro);
+        font-size: 75%;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .circle.tresbolillo {
+        transform: translateX(60%);
+    }
+</style>

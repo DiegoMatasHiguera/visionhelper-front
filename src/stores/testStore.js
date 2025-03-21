@@ -7,4 +7,12 @@ export const useTestsStore = defineStore("Tests", {
     lote_seleccionado: null,
     test_seleccionado: null,
   }),
+  actions: {
+    clearInfo() {
+      this.producto_seleccionado = null;
+      this.muestreo_seleccionado = null;
+      this.lote_seleccionado = null;
+      this.test_seleccionado = null;
+    }
+  }
 });

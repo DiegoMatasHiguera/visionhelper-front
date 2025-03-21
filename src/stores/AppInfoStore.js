@@ -9,4 +9,11 @@ export const useAppInfoStore = defineStore("AppInfo",{
     lote: '',
     muestreo: '',
   }),
+  actions: {
+    clearInfoTest() {
+      this.producto = '';
+      this.lote = '';
+      this.muestreo = '';
+    }
+  }
 });
