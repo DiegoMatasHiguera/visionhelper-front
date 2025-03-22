@@ -129,6 +129,7 @@ export default {
   mounted() {
     this.AppInfoStore = useAppInfoStore();
     this.AppInfoStore.seccion = "Editar Perfil";
+    this.AppInfoStore.generarTitle();
 
     this.authStore = useAuthStore();
 

@@ -14,7 +14,7 @@
         required
       />      
       <div class="forgot-password">
-        <a href="#">¿Olvidaste tu contraseña?</a>
+        <a href="#" title="Pendiente implementar..." disabled>¿Olvidaste tu contraseña?</a>
       </div>
       <Button
         texto="Entrar"
@@ -58,7 +58,8 @@ export default {
   },
   mounted() {    
     this.AppInfoStore = useAppInfoStore();
-    this.AppInfoStore.seccion = "Login";
+    this.AppInfoStore.seccion = "Login";    
+    this.AppInfoStore.generarTitle();
   },
   methods: {
     /**

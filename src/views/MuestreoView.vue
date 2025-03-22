@@ -1,7 +1,7 @@
 <template>
   <div class="box">
       <div class="paneles">
-        <div class="panel">
+        <div v-if="this.testStore.muestreo_info_adicional == null" class="panel">
           <Titulo :texto="tituloText" />
           <FormInput v-model="num_bandejas" label="Nº bandejas" type="number" @input="recalcular"/>
           <FormInput v-model="num_filas" label="Nº filas/bandeja" type="number" @input="recalcular"/>
@@ -11,6 +11,9 @@
             <Toggle id="tresbolillo" v-model="tresbolillo" label="Tresbolillo"/>
             <Toggle id="alternado" v-model="alternado" label="Alternado" :disabled="alternado_disabled"/>
           </div>
+        </div>
+        <div v-else class="panel">
+          <Button texto="Generar nuevo muestreo" @click="resetMuestreo"/>
         </div>
         <Panel class="muestreo">
           <div class="fila">
@@ -37,7 +40,7 @@
           texto="Atrás" 
         />
         <Button @click="continuar" 
-          texto="Continuar" disabled
+          texto="Continuar"
         />
       </div>      
   </div>
@@ -126,8 +129,9 @@ export default {
       if (await this.getTestInfo()) {
         this.AppInfoStore.producto = this.testStore.producto_seleccionado.nombre;
         this.AppInfoStore.lote = this.testStore.lote_seleccionado.id;
-        this.AppInfoStore.muestreo = this.testStore.muestreo_seleccionado.nombre;
-
+        this.AppInfoStore.muestreo = this.testStore.muestreo_seleccionado.nombre;            
+        this.AppInfoStore.generarTitle();
+        
         this.tituloText = "Tipo muestreo: "+this.testStore.muestreo_seleccionado.nombre;
 
         this.generatePlanMuestreo();
@@ -198,7 +202,7 @@ export default {
           this.muestras_a_tomar = this.num_uds_total;
         }
       } else {
-        this.muestras_a_tomar = this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total;
+        this.muestras_a_tomar = Math.ceil(this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total);
       }
 
       var indicesMuestreo = [];      
@@ -246,8 +250,9 @@ export default {
         }
       } else if (this.testStore.muestreo_seleccionado.tipo == "homogéneo") {
         var paso = Math.floor(this.num_uds_total / this.muestras_a_tomar);
+        var centrador = Math.floor(paso/2);
         for (let i = 0; i < this.muestras_a_tomar; i++) {
-          indicesMuestreo.push(i*paso);
+          indicesMuestreo.push(i*paso + centrador);
         }
       }
 
@@ -259,44 +264,62 @@ export default {
      * @description Genera información para cada bandeja.
      */
      generateBandejas() {
-      this.bandejas = [];
-      var numMuestrasInicio = 0;
+      if (this.testStore.muestreo_info_adicional != null) {        
+        this.bandejas = this.testStore.muestreo_info_adicional.bandejas;
+        this.alternado = this.testStore.muestreo_info_adicional.alternado;
+        this.tresbolillo = this.testStore.muestreo_info_adicional.tresbolillo;
 
-      for (let i = 0; i < this.num_bandejas; i++) {
-        var circlesPerBandeja = 0;
-        const muestreoCircles = [];
-        if (i == this.num_bandejas-1) {
-          circlesPerBandeja = this.num_uds_total - (this.num_filas * this.num_uds_fila * (this.num_bandejas-1));
-        } else {
-          circlesPerBandeja = this.num_filas * this.num_uds_fila;
+        this.num_bandejas = this.bandejas.length;        
+        this.muestras_a_tomar = 0;
+        for (let i = 0; i < this.bandejas.length; i++) {
+          this.muestras_a_tomar += this.bandejas[i].muestreoCircles.length;
         }
-        
-        // Metemos los índices de las muestras a tomar
-        var numMuestras = 0;
-        for (let j = 0; j < this.udsMuestreo.length; j++) {
-          if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
-            muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
-            numMuestras++;
+      } else {
+        this.bandejas = [];
+        var numMuestrasInicio = 0;
+        var circlesAcumulados = 0;
+
+        for (let i = 0; i < this.num_bandejas; i++) {
+          var circlesPerBandeja = 0;
+          const muestreoCircles = [];
+          if (i == this.num_bandejas-1) {
+            circlesPerBandeja = this.num_uds_total - circlesAcumulados;
+          } else {
+            if (this.alternado) {
+              circlesPerBandeja = this.num_filas * this.num_uds_fila - Math.floor(this.num_filas/2);
+            } else {
+              circlesPerBandeja = this.num_filas * this.num_uds_fila;
+            }
           }
-        }
+          circlesAcumulados += circlesPerBandeja;
+          
+          // Metemos los índices de las muestras a tomar
+          var numMuestras = 0;
+          for (let j = 0; j < this.udsMuestreo.length; j++) {
+            if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
+              muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
+              numMuestras++;
+            }
+          }
 
-        var rowsFinal = this.num_filas;
-        if (this.alternado) {
-          const rowsCompletas = Math.floor(circlesPerBandeja/this.num_uds_fila);
-          const udsSkipped = Math.floor(rowsCompletas / 2);
-          rowsFinal += Math.floor((circlesPerBandeja%this.num_uds_fila + udsSkipped)/this.num_uds_fila);
-        }
-        
-        this.bandejas.push({
-          numMuestrasInicio: numMuestrasInicio,
-          rows: rowsFinal,
-          circlesPerRow: this.num_uds_fila,
-          circlesPerBandeja: circlesPerBandeja,
-          muestreoCircles: muestreoCircles
-        });
+          var rowsFinal = this.num_filas;
+          if (this.alternado) {
+            const rowsCompletas = Math.floor(circlesPerBandeja/this.num_uds_fila);
+            const udsSkipped = Math.floor(rowsCompletas / 2);
+            rowsFinal += Math.floor((circlesPerBandeja%this.num_uds_fila + udsSkipped)/this.num_uds_fila);
+          }
+          
+          this.bandejas.push({
+            numMuestrasInicio: numMuestrasInicio,
+            rows: rowsFinal,
+            circlesPerRow: this.num_uds_fila,
+            circlesPerBandeja: circlesPerBandeja,
+            muestreoCircles: muestreoCircles
+          });
 
-        numMuestrasInicio += numMuestras;
-      }
+          numMuestrasInicio += numMuestras;
+        }
+      }      
       
       // Reset current bandeja if out of bounds
       if (this.bandeja_actual >= this.num_bandejas) {
@@ -329,11 +352,52 @@ export default {
     },
 
     /**
+     * @method guardarMuestreo
+     * @description Guarda el muestreo generado.
+     */
+    async guardarMuestreo() {
+      this.testStore.muestreo_info_adicional = {
+        bandejas: this.bandejas,
+        alternado: this.alternado,
+        tresbolillo: this.tresbolillo,
+      };
+
+      // Show loading popup
+      const idPopupLoading = this.statusPopup.showLoading('Guardando', 'Guardando el muestreo generado...');
+           
+      const urlSolicitud = this.AppInfoStore.environment+"/tests/registerMuestreo/"+this.$route.params.testId;
+      const jsonEnvio = this.testStore.muestreo_info_adicional;
+
+      try {
+        const response = await protectedRoute.accessProtectedRoute().post(urlSolicitud, jsonEnvio);
+
+        // Ocultar mensaje de carga
+        this.statusPopup.removePopup(idPopupLoading);
+        
+        return true;
+      } catch (error) {
+        this.statusPopup.removePopup(idPopupLoading);
+        protectedRoute.handleError(error, this.statusPopup);         
+
+        return false;
+      }
+    },
+
+    /**
+     * @method resetMuestreo
+     * @description Resetea el muestreo generado.
+     */
+    resetMuestreo() {
+      this.testStore.clearInfoMuestreo();
+    },
+
+    /**
      * @method atras
      * @description Vuelve a la página anterior.
     */
     atras() {      
       this.testStore.clearInfo();
+      this.testStore.clearInfoMuestreo();
       this.AppInfoStore.clearInfoTest();
       this.$router.push('/lotes');
     },
@@ -342,8 +406,9 @@ export default {
      * @method continuar
      * @description Continúa a la página de resumen previo.
     */
-    continuar() {
-      this.$router.push(`/resumenPrevio/${test.id}`);
+    async continuar() {
+      await this.guardarMuestreo();
+      this.$router.push(`/resumenPrevio/${this.testStore.test_seleccionado.id}`);
     }
   }
 };
@@ -369,6 +434,7 @@ export default {
 .panel {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
 
   max-width: 600px;

@@ -62,6 +62,7 @@ export default {
     this.authStore = useAuthStore();
     this.AppInfoStore = useAppInfoStore();
     this.AppInfoStore.seccion = "Inicio";
+    this.AppInfoStore.generarTitle();
     this.testStore = useTestsStore();
 
     if (protectedRoute.accessProtectedRoute() != null) {      

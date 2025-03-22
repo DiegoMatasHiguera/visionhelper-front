@@ -4,6 +4,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import LotesView from '@/views/LotesView.vue'
 import MuestreoView from '@/views/MuestreoView.vue'
+import ResumenPrevioView from '@/views/resumenPrevioView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +38,11 @@ const router = createRouter({
       path: '/muestreo/:testId',
       name: 'muestreo',
       component: MuestreoView,
+    },
+    {
+      path: '/resumenPrevio/:testId',
+      name: 'resumenPrevio',
+      component: ResumenPrevioView,
     },
   ],
 })

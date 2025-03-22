@@ -8,12 +8,19 @@ export const useAppInfoStore = defineStore("AppInfo",{
     producto: '',
     lote: '',
     muestreo: '',
+    pageTitle: '',
   }),
   actions: {
     clearInfoTest() {
       this.producto = '';
       this.lote = '';
       this.muestreo = '';
+    },
+    generarTitle() {
+      this.pageTitle = 'VisionHelper > ' + this.seccion;
+      if (this.producto !== '') {
+        this.pageTitle += ' (' + this.producto + ' | ' + this.lote + ' | ' + this.muestreo + ')'
+      }
     }
   }
 });

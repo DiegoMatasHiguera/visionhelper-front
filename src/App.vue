@@ -1,11 +1,12 @@
 <script>
-import { computed, ref, nextTick } from "vue";
+import { computed, ref, nextTick, watch } from "vue";
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import HeaderLogin from './components/HeaderLogin.vue'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
 import StatusPopup from './components/StatusPopup.vue';
+import { useAppInfoStore } from './stores/AppInfoStore';
 
 export default {
   components: { HeaderLogin, Header, Footer, StatusPopup },
@@ -20,7 +21,16 @@ export default {
 
     const isReady = ref(false);
 
-    return { currentHeader, showFooter, isReady };
+    const appInfoStore = useAppInfoStore()
+    
+    watch(
+      () => appInfoStore.pageTitle,
+      (newTitle) => {
+        document.title = newTitle
+      }
+    )
+
+    return { currentHeader, showFooter, isReady, appInfoStore };
   },
   mounted() {
     // Hay que esperar a que el componente esté listo antes de mostrarlo

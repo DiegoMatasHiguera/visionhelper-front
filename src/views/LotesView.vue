@@ -91,7 +91,8 @@ export default {
   async mounted() {    
     this.authStore = useAuthStore();
     this.AppInfoStore = useAppInfoStore();
-    this.AppInfoStore.seccion = "Ver Lotes";
+    this.AppInfoStore.seccion = "Ver Lotes";    
+    this.AppInfoStore.generarTitle();
     this.testStore = useTestsStore();
 
     if (protectedRoute.accessProtectedRoute() != null) { 
@@ -332,7 +333,7 @@ export default {
 .box {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
 
   width: 100%;
@@ -353,6 +354,7 @@ export default {
   flex-direction: column;
   align-items: start;
 
+  min-width: 300px;
   max-width: 600px;
 
   font-size: 20px;
@@ -379,6 +381,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: 100%;
 }
 
 @media (max-width: 750px) {

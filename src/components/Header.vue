@@ -238,8 +238,14 @@ export default {
   }
 
   .seccion {
+    line-height: 40px;
+    height: 50px;
     min-height: 40px;
     font-size: 20px;
+  }
+
+  .seccion-with-product {    
+    line-height: 30px;
   }
 
   .subseccion {    
