@@ -74,6 +74,7 @@
 import protectedRoute from '@/helpers/protectedRoute';
 import { useAppInfoStore } from '@/stores/AppInfoStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useTestsStore } from '@/stores/testStore';
 import Button from '@/components/Button.vue';
 import Panel from '@/components/Panel.vue';
 import FormInput from '@/components/FormInput.vue';
@@ -100,6 +101,8 @@ export default {
   },
   data() {
     return {
+      authStore: '',
+      testStore: '',
       AppInfoStore: '',
       user_name: '',
       user_email: '',
@@ -132,6 +135,13 @@ export default {
     this.AppInfoStore.generarTitle();
 
     this.authStore = useAuthStore();
+
+    this.testStore = useTestsStore();
+
+    // Limpiamos la información de tests y muestreos
+    this.testStore.clearInfo();
+    this.testStore.clearInfoMuestreo();
+    this.AppInfoStore.clearInfoTest();
 
     if (protectedRoute.accessProtectedRoute() != null) {      
       this.getPerfilInfo();

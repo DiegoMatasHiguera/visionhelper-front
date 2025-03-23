@@ -29,8 +29,10 @@ export default {
   text-align: center;
   
   width: 180px;
-  height: 50px;
+  height: auto;
+  min-height: 50px;
 
+  padding: 5px;
   margin: 15px;
   
   font-weight: var(--font-peso-bold);

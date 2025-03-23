@@ -21,6 +21,14 @@ export const useAuthStore = defineStore("auth",{
       this.tipo = tipo;
       localStorage.setItem('tipo', tipo);
     },
+    setUserName(user_name) {
+      this.user_name = user_name;
+      localStorage.setItem('user_name', user_name);
+    },
+    setTipo(tipo) {
+      this.tipo = tipo;
+      localStorage.setItem('tipo', tipo);
+    },
     updateAccessToken(accessToken) {
       this.accessToken = accessToken;      
       localStorage.setItem('access_token', accessToken);

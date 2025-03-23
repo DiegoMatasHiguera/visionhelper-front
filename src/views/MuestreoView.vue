@@ -145,6 +145,15 @@ export default {
      * @description Recalcula el número de unidades totales.
     */
     recalcular() {
+      if (this.num_bandejas < 1) {
+        this.num_bandejas = 1;
+      }
+      if (this.num_filas < 1) {
+        this.num_filas = 1;
+      }
+      if (this.num_uds_fila < 1) {
+        this.num_uds_fila = 1;
+      }
       if (this.alternado) {
         this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas - Math.floor(this.num_filas/2);
       } else {
@@ -232,21 +241,21 @@ export default {
       } else if (this.testStore.muestreo_seleccionado.tipo == "sistemático") {
         var puntoInicio = Math.floor(Math.random() * (this.num_uds_total-this.muestras_a_tomar));
         var pasoActual = 0;
-        while (muestrasRestantes > 0) {       
-            var indice = puntoInicio+pasoActual;            
-            indicesMuestreo.push(indice);
+        while (muestrasRestantes > 0) {
+          var indice = puntoInicio+pasoActual;                   
+          if (indice >= this.num_uds_total) {
+            puntoInicio = indice - this.num_uds_total+1;
+            pasoActual = 0;
+            indice = puntoInicio;
+          }            
+          indicesMuestreo.push(indice);
 
-            muestrasRestantes--;
-            if (this.testStore.muestreo_seleccionado.cada > 0) {          
-              pasoActual += this.testStore.muestreo_seleccionado.cada;
-            } else {
-              pasoActual++;
-            }
-
-            if (indice >= this.num_uds_total) {
-              puntoInicio = indice - this.num_uds_total;
-              pasoActual = 0;
-            }
+          muestrasRestantes--;
+          if (this.testStore.muestreo_seleccionado.cada > 0) {          
+            pasoActual += this.testStore.muestreo_seleccionado.cada;
+          } else {
+            pasoActual++;
+          }
         }
       } else if (this.testStore.muestreo_seleccionado.tipo == "homogéneo") {
         var paso = Math.floor(this.num_uds_total / this.muestras_a_tomar);
@@ -396,9 +405,6 @@ export default {
      * @description Vuelve a la página anterior.
     */
     atras() {      
-      this.testStore.clearInfo();
-      this.testStore.clearInfoMuestreo();
-      this.AppInfoStore.clearInfoTest();
       this.$router.push('/lotes');
     },
 

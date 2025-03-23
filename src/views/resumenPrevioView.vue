@@ -3,60 +3,74 @@
       <div class="paneles">
         <Panel class="resumen">
           <div class="fila">
-            <div>Acondicionamiento:</div>
+            <div class="fila-label">· Acondicionamiento:</div>
             <div>{{ acondicionamiento }}</div>
           </div>
           <div class="fila">
-            <div>Pretratamiento:</div>
+            <div class="fila-label">· Pretratamiento:</div>
             <div>{{ pretratamiento }}</div>
           </div>
           <div class="fila">
-            <div>Agitación:</div>
+            <div class="fila-label">· Agitación:</div>
             <div v-if="agitacion.includes('http://') || agitacion.includes('https://')"><a :href="agitacion" target="_blank">Ver instrucciones</a></div>
             <div v-else>{{ agitacion }}</div>
           </div>
           <div class="fila">
-            <div>Polarizador:</div>
+            <div class="fila-label">· Polarizador:</div>
             <div>{{ polarizador ? 'Sí' : 'No' }}</div>
           </div>
           <div class="fila">
-            <div>Lupa:</div>
+            <div class="fila-label">· Lupa:</div>
             <div>{{ lupa }}x</div>
           </div>
           <div class="fila">
-            <div>Tiempo mínimo de observación/campo:</div>
+            <div class="fila-label">· Tiempo mínimo de observación/campo:</div>
             <div>{{ tiempo_min_obs }} segundos</div>
           </div>
-          <div>
-            <div>Observaciones:</div>
-            <div>{{ !observaciones?.trim() ? "N/A" : observaciones }}</div>
-          </div>
+          <TextArea id="observaciones" label="Observaciones" :modelValue="!observaciones?.trim() ? 'N/A' : observaciones" readonly="true"/>
         </Panel>
         <Panel class="limitado">
           <Titulo texto="Posición de observación"/>
-          <div>
             <div class="fila">
               <div class="campo">Fondo negro:
                 <div class="bombillas">                  
-                  <img class="bombilla-relieve negra" src="@/assets/bombilla_relieve.svg"/>
-                  <img class="bombilla-relleno" src="@/assets/bombilla_relleno.svg"/>
+                  <img class="bombilla-relieve-negra" src="@/assets/bombilla_relieve.svg"/>
+                  <img class="bombilla-relleno" src="@/assets/bombilla_relleno.svg" 
+                    :class="negroClass" 
+                    :style="{ opacity: negroOpacity }"/>
                 </div>
                 <div class="fila">                  
                   <div class="luxes">{{ lux_fondo_negro }}</div>
-                  <button class="botonPeque" v-if="luxometro_posicion == 'negro'">Fijar</button>
+                  <button class="botonPeque" v-if="luxometro_posicion == 'negro' && luxometro_disponible">Fijar</button>
+                </div>
+              </div>
+              <div class="campo">Fondo blanco:
+                <div class="bombillas">                  
+                  <img class="bombilla-relieve-blanca" src="@/assets/bombilla_relieve.svg"/>
+                  <img class="bombilla-relleno" src="@/assets/bombilla_relleno.svg"
+                    :class="blancoClass" 
+                    :style="{ opacity: blancoOpacity }" 
+                    />
+                </div>
+                <div class="fila">                  
+                  <div class="luxes">{{ lux_fondo_blanco }}</div>
+                  <button class="botonPeque" v-if="luxometro_posicion == 'blanco' && luxometro_disponible">Fijar</button>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="fila">
-            <div>Lux objetivo:</div>
-            <div>{{ lux_min }} - {{ lux_max }} lux</div>
-          </div>
+            <div><span class="fila-label">Lux objetivo: </span>{{ lux_min }} - {{ lux_max }} lux</div>
           <div class="instrucciones">
-            Colocar el dispositivo en cada fondo, de tal manera que alcance la intensidad de luz objetivo. 
-            <br>
-            Visualizar los viales en esas posiciones. Si no es posible, avisar al responsable del equipo.
-          </div>
+            <span v-if="luxometro_disponible">
+              Colocar el dispositivo en cada fondo, de tal manera que alcance la intensidad de luz objetivo. 
+              <br>
+              Visualizar los viales en esas posiciones. Si no es posible, avisar al responsable del equipo.
+            </span>
+            <span v-else>
+              No se ha detectado un luxómetro en el dispositivo. 
+              <br>
+              Por favor, comprobar que la calibración del visor de partículas esté en vigor.
+            </span>
+            </div>
         </Panel>
       </div>
       <div class="botones">
@@ -64,7 +78,7 @@
           texto="Atrás" 
         />
         <Button @click="continuar" 
-          texto="Continuar" disabled
+          texto="Continuar"
         />
       </div>      
   </div>
@@ -82,6 +96,7 @@ import { useTestsStore } from '@/stores/testStore';
 import Button from '@/components/Button.vue';
 import Panel from '@/components/Panel.vue';
 import Titulo from '@/components/Titulo.vue';
+import TextArea from '@/components/TextArea.vue';
 
 export default {
   name: 'MuestreoView',
@@ -89,6 +104,7 @@ export default {
     Button,
     Panel,
     Titulo,
+    TextArea,
   },
   props: {
     statusPopup: Object,
@@ -107,11 +123,58 @@ export default {
       lux_min: 0,
       lux_max: 0,
       observaciones: '',
-      luxometro_disponible: false,
+      luxometro_disponible: true,
       luxometro_posicion: 'negro',
       lux_fondo_negro: 0,
       lux_fondo_blanco: 0,
     };
+  },
+  computed: {
+    /**
+     * @computed negroOpacity
+     * @description Calcula la opacidad para el fondo negro basado en la relación entre el valor actual y el mínimo
+     */
+    negroOpacity() {
+      if (this.lux_min === 0) return 0;
+      const ratio = this.lux_fondo_negro / this.lux_min;
+      return Math.min(ratio, 1);
+    },
+    
+    /**
+     * @computed blancoOpacity
+     * @description Calcula la opacidad para el fondo blanco basado en la relación entre el valor actual y el mínimo
+     */
+    blancoOpacity() {
+      if (this.lux_min === 0) return 0;
+      const ratio = this.lux_fondo_blanco / this.lux_min;
+      return Math.min(ratio, 1);
+    },
+    
+    /**
+     * @computed negroClass
+     * @description Determina la clase para el fondo negro según el valor de luz
+     */
+    negroClass() {
+      if (this.lux_fondo_negro > this.lux_max) {
+        return 'excedido';
+      } else if (this.lux_fondo_negro >= this.lux_min && this.lux_fondo_negro <= this.lux_max) {
+        return 'correcto';
+      }
+      return 'inferior';
+    },
+    
+    /**
+     * @computed blancoClass
+     * @description Determina la clase para el fondo blanco según el valor de luz
+     */
+    blancoClass() {
+      if (this.lux_fondo_blanco > this.lux_max) {
+        return 'excedido';
+      } else if (this.lux_fondo_blanco >= this.lux_min && this.lux_fondo_blanco <= this.lux_max) {
+        return 'correcto';
+      }      
+      return 'inferior';
+    }
   },  
   //Called when the component is created
   async mounted() {    
@@ -130,7 +193,7 @@ export default {
     }
 
     // Comprobar si el luxómetro está disponible
-    this.luxometro_disponible = this.comprobarLuxometro();
+    this.luxometro_disponible = await this.comprobarLuxometro();
   },
   methods: {
     /**
@@ -139,7 +202,7 @@ export default {
     */
     async getTestInfo() {
       // Show loading popup
-      const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información de tests nuevos...');
+      const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información del test...');
            
       const urlSolicitud = this.AppInfoStore.environment+"/tests/"+this.$route.params.testId;
       const jsonEnvio = {
@@ -223,8 +286,7 @@ export default {
           });
           
           // Start the sensor
-          await luxometro.start();
-          return true;          
+          await luxometro.start();          
         } else {
           console.log("Ambient Light Sensor API is not supported on this device.");
           return false;
@@ -261,6 +323,7 @@ export default {
 .box {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
 
   width: 100%;
@@ -269,8 +332,9 @@ export default {
 .paneles {
   display: flex;
   justify-content: space-evenly;
-  min-width: 500px; 
-
+  min-width: 500px;
+  max-width: 1200px; 
+  
   width: 100%;
 }
 
@@ -286,26 +350,70 @@ export default {
   max-width: 350px;
 }
 
-.campo {
-  display: flex;
-  flex-direction: column;
-}
-
-.bombillas {
-  position: relative;
-}
-
 .fila {
   width: 100%;  
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  margin: 5px 0;
+}
+
+.fila-label {
+  font-weight: var(--font-peso-semibold);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 0 10px;
+  border-radius: 8px;
+
+  background-color: var(--color-fondo);
+}
+
+.bombillas {
+  margin-top: -5px;
+  margin-bottom: -5px;
+  position: relative;
+}
+
+.bombilla-relieve {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bombilla-relieve-blanca {
+  filter: invert(1);
+}
+
+.bombilla-relleno {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bombilla-relleno.excedido {
+  filter: brightness(0) saturate(100%) invert(63%) sepia(6%) saturate(4123%) hue-rotate(314deg) brightness(98%) contrast(101%); /* Turns the light color to red */
+}
+
+.bombilla-relleno.correcto {
+  filter: brightness(0) saturate(100%) invert(84%) sepia(23%) saturate(686%) hue-rotate(80deg) brightness(105%) contrast(98%); /* Turns the light color to green */
+}
+
+.instrucciones {
+  font-size: 12px;
+  font-weight: var(--font-peso-medium);
+  margin: 10px 0;
 }
 
 .botonPeque {
   background-color: var(--color-mas-oscuro);
   box-shadow: 0px 2px 2px 1px rgba(0, 0, 0, 0.5);
-  margin: 5px;
+
 }
 
 .botonPeque:hover {

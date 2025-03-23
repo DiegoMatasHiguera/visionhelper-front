@@ -5,6 +5,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import LotesView from '@/views/LotesView.vue'
 import MuestreoView from '@/views/MuestreoView.vue'
 import ResumenPrevioView from '@/views/resumenPrevioView.vue'
+import TestView from '@/views/TestView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,6 +44,11 @@ const router = createRouter({
       path: '/resumenPrevio/:testId',
       name: 'resumenPrevio',
       component: ResumenPrevioView,
+    },
+    {
+      path: '/test/:testId',
+      name: 'test',
+      component: TestView,
     },
   ],
 })

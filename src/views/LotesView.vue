@@ -95,6 +95,11 @@ export default {
     this.AppInfoStore.generarTitle();
     this.testStore = useTestsStore();
 
+    // Limpiamos la información de tests y muestreos
+    this.testStore.clearInfo();
+    this.testStore.clearInfoMuestreo();
+    this.AppInfoStore.clearInfoTest();
+
     if (protectedRoute.accessProtectedRoute() != null) { 
       if (await this.getTests()) {
         if (await this.getLotes()) {

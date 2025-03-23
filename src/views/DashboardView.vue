@@ -8,13 +8,15 @@
       :imagen="'/src/assets/vial.svg'" 
       texto="Lotes"
       :texto_notificacion="texto_lotes_nuevos"
-      tipo_notificacion="amarilla" 
+      tipo_notificacion="amarilla"
+      :disabled="!cualificado"
+      :title="!cualificado ? 'No puedes ver lotes hasta que no hagas el examen!' : ''" 
     />
     <ButtonBig @click="irAExamenes"
       :imagen="'/src/assets/exam-icon.svg'" 
       texto="Exámenes"
       :texto_notificacion="texto_examenes_nuevos"
-      tipo_notificacion="roja"
+      :tipo_notificacion="cualificado ? 'amarilla' : 'roja'"
       disabled="true" 
     />
   </div>
@@ -43,7 +45,7 @@ export default {
     return {
       numero_lotes_nuevos: 0,
       numero_examenes_nuevos: 0,
-      avisos_cualificaciones: false,
+      cualificado: false,
       AppInfoStore: '',
       authStore: '',
       testStore: '',
@@ -54,24 +56,56 @@ export default {
       return this.numero_lotes_nuevos > 0 ? (String) (this.numero_lotes_nuevos) : "";
     },
     texto_examenes_nuevos() {
-      return this.numero_examenes_nuevos > 0 ? "!" : "";
+      return this.numero_examenes_nuevos > 0 ? (String) (this.numero_examenes_nuevos) : "";
     }
   },
   //Called when the component is created
-  mounted() {
+  async mounted() {
     this.authStore = useAuthStore();
     this.AppInfoStore = useAppInfoStore();
     this.AppInfoStore.seccion = "Inicio";
     this.AppInfoStore.generarTitle();
     this.testStore = useTestsStore();
 
+    // Limpiamos la información de tests y muestreos
+    this.testStore.clearInfo();
+    this.testStore.clearInfoMuestreo();
+    this.AppInfoStore.clearInfoTest();
+
     if (protectedRoute.accessProtectedRoute() != null) {      
-      this.getTestsPendientes();
+      await this.getTestsPendientes();
+      this.getInfoUsuario();
     } else {
       this.$router.push('/login');
     }
   },
   methods: {
+    /**
+     * @method getInfoUsuario
+     * @description Recupera la información del usuario para mostrarla en el dashboard.
+    */
+    async getInfoUsuario() {     
+      // Show loading popup
+      const idPopupLoading = this.statusPopup.showLoading('Conectando', 'Recuperando información de usuario...');
+      
+      const urlSolicitud = "/profile/"+this.authStore.user_email;
+
+      try {
+        const response = await protectedRoute.accessProtectedRoute().get(urlSolicitud);
+
+        // Ocultar mensaje de carga
+        this.statusPopup.removePopup(idPopupLoading);
+        
+        // Cargar la información de usuario.
+        this.cualificado = response.data.cualificado;
+        this.authStore.setUserName(response.data.nombre);
+        this.authStore.setTipo(response.data.tipo);
+      } catch (error) {
+        this.statusPopup.removePopup(idPopupLoading);
+        protectedRoute.handleError(error, this.statusPopup);
+      }
+    },
+
     /**
      * @method getTestsPendientes
      * @description Recupera la cantidad de tests pendientes para mostrarlo encima del botón de Ver Lotes.
@@ -92,7 +126,7 @@ export default {
         // Ocultar mensaje de carga
         this.statusPopup.removePopup(idPopupLoading);
         
-        // Cargar la información de tests nuevos y almacenar en una store.
+        // Cargar la información de tests nuevos.
         for (let i = 0; i < response.data.length; i++) {
           if (response.data[i].nombre_muestreo.includes("Examen")) {
             this.numero_examenes_nuevos++;

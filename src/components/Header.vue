@@ -205,7 +205,7 @@ export default {
 }
 
 .seccion {
-  font-size: 32px;
+  font-size: 28px;
 
   z-index: 2; /* Ensures it appears above other elements if needed */
 }
@@ -218,7 +218,7 @@ export default {
   display: flex;
   flex-direction: column;
 
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 1px;  
   line-height: normal;
 

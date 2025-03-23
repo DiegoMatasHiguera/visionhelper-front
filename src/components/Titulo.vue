@@ -29,9 +29,10 @@ export default {
   border-radius: 8px;
 
   font-weight: var(--font-peso-bold);
+  font-size: 18px;
 
   padding: 15px;
-  margin: 20px;
+  margin: 10px;
 }
 
 .titulo-claro {
@@ -41,5 +42,9 @@ export default {
 
 .titulo-oscuro {
   background-color: var(--color-mas-oscuro);
+}
+
+.titulo-resalte {
+  color: var(--color-resalte);
 }
 </style>
