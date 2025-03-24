@@ -33,7 +33,7 @@ export default {
   min-height: 50px;
 
   padding: 5px;
-  margin: 15px;
+  margin: 10px;
   
   font-weight: var(--font-peso-bold);
   font-size: 20px;

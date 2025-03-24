@@ -15,25 +15,11 @@
         <div v-else class="panel">
           <Button texto="Generar nuevo muestreo" @click="resetMuestreo"/>
         </div>
-        <Panel class="muestreo">
-          <div class="fila">
-            <div><button class="botonPeque" @click="prevBandeja">
-              <</button> Bandeja nº: {{ bandeja_actual+1 }} de {{ bandejas.length }}
-              <button class="botonPeque" @click="nextBandeja">></button>
-            </div>
-            <div>Muestras a tomar: <span class="muestrasTomar"> {{ muestras_a_tomar }}</span></div>
-          </div>
-          <Muestreo 
-            v-if="bandejas.length > 0"
-            :numMuestrasInicio="bandejas[bandeja_actual].numMuestrasInicio"
-            :rows="bandejas[bandeja_actual].rows"
-            :circlesPerRow="bandejas[bandeja_actual].circlesPerRow"
-            :circlesPerBandeja="bandejas[bandeja_actual].circlesPerBandeja"
-            :muestreoCircles="bandejas[bandeja_actual].muestreoCircles"
-            :alternado="alternado"
-            :tresbolillo="tresbolillo"
-          />
-        </Panel>
+        <MuestreoBandejaPanel class="muestreo"
+          :bandejas="bandejas"
+          :alternado="alternado"
+          :tresbolillo="tresbolillo"
+        />
       </div>
       <div class="botones">
         <Button @click="atras" 
@@ -60,7 +46,7 @@ import Panel from '@/components/Panel.vue';
 import Titulo from '@/components/Titulo.vue';
 import FormInput from '@/components/FormInput.vue';
 import Toggle from '@/components/Toggle.vue';
-import Muestreo from '@/components/Muestreo.vue';
+import MuestreoBandejaPanel from '@/components/MuestreoBandejaPanel.vue';
 
 export default {
   name: 'MuestreoView',
@@ -70,7 +56,7 @@ export default {
     Titulo,
     FormInput,
     Toggle,
-    Muestreo,
+    MuestreoBandejaPanel
   },
   props: {
     statusPopup: Object,
@@ -81,13 +67,11 @@ export default {
       authStore: '',
       testStore: '',
       tituloText: '',
-      bandeja_actual: 0,
       bandejas: [],
       num_bandejas: 1,
       num_filas: 0,
       num_uds_fila: 9,
       num_uds_total: 0,
-      muestras_a_tomar: 0,
       udsMuestreo: [],
       alternado: false,
       alternado_disabled: true,
@@ -110,9 +94,9 @@ export default {
       if (this.num_uds_total < 1) {
         this.num_uds_total = 1;
       } else if (this.num_uds_total > this.num_filas*this.num_uds_fila*this.num_bandejas) {
-        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas / this.num_bandejas);
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
       } else if (this.num_uds_total < this.num_filas*this.num_uds_fila*(this.num_bandejas-1)) {
-        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas / this.num_bandejas);
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
       }
       this.generatePlanMuestreo();
       this.generateBandejas();
@@ -133,9 +117,6 @@ export default {
         this.AppInfoStore.generarTitle();
         
         this.tituloText = "Tipo muestreo: "+this.testStore.muestreo_seleccionado.nombre;
-
-        this.generatePlanMuestreo();
-        this.generateBandejas();
       }
     }
   },
@@ -154,11 +135,8 @@ export default {
       if (this.num_uds_fila < 1) {
         this.num_uds_fila = 1;
       }
-      if (this.alternado) {
-        this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas - Math.floor(this.num_filas/2);
-      } else {
-        this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas;
-      }
+
+      this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas;
     },
 
     /**
@@ -184,12 +162,32 @@ export default {
         // Cargar la información del test
         this.testStore.producto_seleccionado = response.data.producto[0];
         this.testStore.muestreo_seleccionado = response.data.tipo_muestreo[0];
+        this.testStore.muestreo_info_adicional = response.data.test[0].estructura_muestreo 
+          ? JSON.parse(response.data.test[0].estructura_muestreo) 
+          : null;
         this.testStore.lote_seleccionado = response.data.lote[0];
         this.testStore.test_seleccionado = response.data.test[0];
 
-        // Introducimos los datos básicos
-        this.num_uds_total = this.testStore.lote_seleccionado.tamano;
-        this.num_filas = Math.ceil(this.num_uds_total / this.num_uds_fila);
+        // Comprobamos si hay información adicional de muestreo
+        if (this.testStore.muestreo_info_adicional != null) {
+          this.bandejas = this.testStore.muestreo_info_adicional.bandejas;
+          this.alternado = this.testStore.muestreo_info_adicional.alternado;
+          this.tresbolillo = this.testStore.muestreo_info_adicional.tresbolillo;
+          this.num_bandejas = this.bandejas.length;
+          this.num_filas = this.bandejas[0].rows;
+          this.num_uds_fila = this.bandejas[0].circlesPerRow;
+          let num_uds_total = 0;
+          for (let i = 0; i < this.bandejas.length; i++) {
+            num_uds_total += this.bandejas[i].circlesPerBandeja;
+          }
+          this.num_uds_total = num_uds_total;
+        } else {
+          // Si no, introducimos los datos básicos
+          this.num_uds_total = this.testStore.lote_seleccionado.tamano;
+          this.num_filas = Math.ceil(this.num_uds_total / this.num_uds_fila);
+          this.generatePlanMuestreo();
+          this.generateBandejas();
+        }
         return true;
       } catch (error) {
         this.statusPopup.removePopup(idPopupLoading);
@@ -204,18 +202,19 @@ export default {
      * @description Genera un plan de muestreo, dependiendo del tipo de muestreo seleccionado (azar, sistemático, homogéneo).
     */
     generatePlanMuestreo() {
+      let muestras_a_tomar = 0;
       if (this.testStore.muestreo_seleccionado.cada != 0) {
-        this.muestras_a_tomar = this.testStore.muestreo_seleccionado.cantidad 
+        muestras_a_tomar = this.testStore.muestreo_seleccionado.cantidad 
           * this.testStore.muestreo_seleccionado.cada;
-        if (this.muestras_a_tomar > this.num_uds_total) {
-          this.muestras_a_tomar = this.num_uds_total;
+        if (muestras_a_tomar > this.num_uds_total) {
+          muestras_a_tomar = this.num_uds_total;
         }
       } else {
-        this.muestras_a_tomar = Math.ceil(this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total);
+        muestras_a_tomar = Math.ceil(this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total);
       }
 
       var indicesMuestreo = [];      
-      var muestrasRestantes = this.muestras_a_tomar;
+      var muestrasRestantes = muestras_a_tomar;
 
       if (this.testStore.muestreo_seleccionado.tipo == "azar") {
         if (this.testStore.muestreo_seleccionado.cada > 0) {
@@ -239,15 +238,19 @@ export default {
           }
         }        
       } else if (this.testStore.muestreo_seleccionado.tipo == "sistemático") {
-        var puntoInicio = Math.floor(Math.random() * (this.num_uds_total-this.muestras_a_tomar));
+        var puntoInicio = Math.floor(Math.random() * (this.num_uds_total-muestras_a_tomar));
         var pasoActual = 0;
         while (muestrasRestantes > 0) {
           var indice = puntoInicio+pasoActual;                   
           if (indice >= this.num_uds_total) {
-            puntoInicio = indice - this.num_uds_total+1;
+            puntoInicio = indice - this.num_uds_total;
             pasoActual = 0;
             indice = puntoInicio;
-          }            
+          }
+          if (indicesMuestreo.includes(indice)) {
+            pasoActual++;
+            continue;
+          }
           indicesMuestreo.push(indice);
 
           muestrasRestantes--;
@@ -258,9 +261,9 @@ export default {
           }
         }
       } else if (this.testStore.muestreo_seleccionado.tipo == "homogéneo") {
-        var paso = Math.floor(this.num_uds_total / this.muestras_a_tomar);
+        var paso = Math.floor(this.num_uds_total / muestras_a_tomar);
         var centrador = Math.floor(paso/2);
-        for (let i = 0; i < this.muestras_a_tomar; i++) {
+        for (let i = 0; i < muestras_a_tomar; i++) {
           indicesMuestreo.push(i*paso + centrador);
         }
       }
@@ -272,92 +275,51 @@ export default {
      * @method generateBandejas
      * @description Genera información para cada bandeja.
      */
-     generateBandejas() {
-      if (this.testStore.muestreo_info_adicional != null) {        
-        this.bandejas = this.testStore.muestreo_info_adicional.bandejas;
-        this.alternado = this.testStore.muestreo_info_adicional.alternado;
-        this.tresbolillo = this.testStore.muestreo_info_adicional.tresbolillo;
+     generateBandejas() {        
+      this.bandejas = [];
+      var numMuestrasInicio = 0;
+      var circlesAcumulados = 0;
 
-        this.num_bandejas = this.bandejas.length;        
-        this.muestras_a_tomar = 0;
-        for (let i = 0; i < this.bandejas.length; i++) {
-          this.muestras_a_tomar += this.bandejas[i].muestreoCircles.length;
-        }
-      } else {
-        this.bandejas = [];
-        var numMuestrasInicio = 0;
-        var circlesAcumulados = 0;
-
-        for (let i = 0; i < this.num_bandejas; i++) {
-          var circlesPerBandeja = 0;
-          const muestreoCircles = [];
-          if (i == this.num_bandejas-1) {
-            circlesPerBandeja = this.num_uds_total - circlesAcumulados;
-          } else {
-            if (this.alternado) {
-              circlesPerBandeja = this.num_filas * this.num_uds_fila - Math.floor(this.num_filas/2);
-            } else {
-              circlesPerBandeja = this.num_filas * this.num_uds_fila;
-            }
-          }
-          circlesAcumulados += circlesPerBandeja;
-          
-          // Metemos los índices de las muestras a tomar
-          var numMuestras = 0;
-          for (let j = 0; j < this.udsMuestreo.length; j++) {
-            if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
-              muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
-              numMuestras++;
-            }
-          }
-
-          var rowsFinal = this.num_filas;
+      for (let i = 0; i < this.num_bandejas; i++) {
+        var circlesPerBandeja = 0;
+        const muestreoCircles = [];
+        if (i == this.num_bandejas-1) {
+          circlesPerBandeja = this.num_uds_total - circlesAcumulados;
+        } else {
           if (this.alternado) {
-            const rowsCompletas = Math.floor(circlesPerBandeja/this.num_uds_fila);
-            const udsSkipped = Math.floor(rowsCompletas / 2);
-            rowsFinal += Math.floor((circlesPerBandeja%this.num_uds_fila + udsSkipped)/this.num_uds_fila);
+            circlesPerBandeja = this.num_filas * this.num_uds_fila - Math.floor(this.num_filas/2);
+          } else {
+            circlesPerBandeja = this.num_filas * this.num_uds_fila;
           }
-          
-          this.bandejas.push({
-            numMuestrasInicio: numMuestrasInicio,
-            rows: rowsFinal,
-            circlesPerRow: this.num_uds_fila,
-            circlesPerBandeja: circlesPerBandeja,
-            muestreoCircles: muestreoCircles
-          });
-
-          numMuestrasInicio += numMuestras;
         }
-      }      
-      
-      // Reset current bandeja if out of bounds
-      if (this.bandeja_actual >= this.num_bandejas) {
-        this.bandeja_actual = 0;
-      }
-    },
+        circlesAcumulados += circlesPerBandeja;
+        
+        // Metemos los índices de las muestras a tomar
+        var numMuestras = 0;
+        for (let j = 0; j < this.udsMuestreo.length; j++) {
+          if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
+            muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
+            numMuestras++;
+          }
+        }
 
-    /**
-     * @method nextBandeja
-     * @description Go to next bandeja
-     */
-     nextBandeja() {
-      if (this.bandeja_actual < this.num_bandejas-1) {
-        this.bandeja_actual++;
-      } else {
-        this.bandeja_actual = 0;
-      }
-    },
-    
-    /**
-     * @method prevBandeja
-     * @description Go to previous bandeja
-     */
-    prevBandeja() {
-      if (this.bandeja_actual >= 1) {
-        this.bandeja_actual--;
-      } else {
-        this.bandeja_actual = this.num_bandejas-1;
-      }
+        var rowsFinal = this.num_filas;
+        if (this.alternado) {
+          const rowsCompletas = Math.floor(circlesPerBandeja/this.num_uds_fila);
+          const udsSkipped = Math.floor(rowsCompletas / 2);
+          rowsFinal += Math.floor((circlesPerBandeja%this.num_uds_fila + udsSkipped)/this.num_uds_fila);
+        }
+        
+        this.bandejas.push({
+          numMuestrasInicio: numMuestrasInicio,
+          rows: rowsFinal,
+          circlesPerRow: this.num_uds_fila,
+          circlesPerBandeja: circlesPerBandeja,
+          muestreoCircles: muestreoCircles
+        });
+
+        numMuestrasInicio += numMuestras;
+      }          
     },
 
     /**
@@ -456,7 +418,6 @@ export default {
 .muestreo {
   font-size: 16px;
   font-weight: var(--font-peso-medium);
-  
   min-width: 450px; 
 }
 
@@ -465,29 +426,6 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.muestrasTomar {
-  border-radius: 50%;
-  padding: 5px;
-
-  text-align: center;
-  line-height: 25px;
-  color: var(--color-oscuro);
-  font-weight: var(--font-peso-bold);
-  font-size: 16px;
-
-  background-color: var(--color-resalte);
-}
-
-.botonPeque {
-  background-color: var(--color-mas-oscuro);
-  box-shadow: 0px 2px 2px 1px rgba(0, 0, 0, 0.5);
-  margin: 5px;
-}
-
-.botonPeque:hover {
-  box-shadow: var(--shadow-focus-pequeno);
 }
 
 .botones {

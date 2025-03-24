@@ -23,7 +23,7 @@ export default {
 
     width: 100%;
     padding: 20px;
-    margin: 20px;
+    margin: 15px;
 
     text-align: justify;
 

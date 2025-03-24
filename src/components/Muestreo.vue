@@ -7,9 +7,11 @@
           class="borde"
         >
             <div v-if="(!alternado) || (alternado && !isLastofRow(index))" class="circle" 
-            :class="{ 'muestreo': isMuestreoCircle(getAdjustedIndex(index)-1),
-              'tresbolillo': tresbolillo && isOddRow(index)}">
-                <span v-if="isMuestreoCircle(getAdjustedIndex(index)-1)">{{ getMuestraNumber(getAdjustedIndex(index)-1) }}</span>
+            :class="{ 
+                'muestreo': isMuestreoCircle(getAdjustedIndex(index-1)),
+                'tresbolillo': tresbolillo && isOddRow(index),
+                'highlighted': isMuestreoCircle(getAdjustedIndex(index-1)) && getMuestraNumber(getAdjustedIndex(index-1)) === currentMuestra}">
+                <span v-if="isMuestreoCircle(getAdjustedIndex(index-1))">{{ getMuestraNumber(getAdjustedIndex(index-1)) }}</span>
               </div>
         </div>
       </div>
@@ -52,6 +54,10 @@
             type: Boolean,
             default: false
         },
+        currentMuestra: {
+            type: Number,
+            default: 0
+        }
     },
     data() {
         return {
@@ -103,7 +109,7 @@
         },
         getAdjustedIndex(index) {
             // Calculate how many circles have been skipped before this position
-            const row = Math.ceil(index / this.circlesPerRow);
+            const row = Math.floor(index / this.circlesPerRow);
             const skippedCircles = this.alternado ? Math.floor(row / 2) : 0;
             return index - skippedCircles;
         },
@@ -160,6 +166,10 @@
         font-size: 75%;
         text-align: center;
         overflow: hidden;
+    }
+
+    .circle.highlighted {
+        background-color: var(--color-correcto);
     }
 
     .circle.tresbolillo {

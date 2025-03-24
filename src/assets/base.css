@@ -6,6 +6,7 @@
   --color-oscuro: #184563;     /* Oscuro */
   --color-resalte: #FFDC8B;    /* Resalte */
   --color-error: #FC817B;      /* Error */
+  --color-filter-error: brightness(0) saturate(100%) invert(63%) sepia(6%) saturate(4123%) hue-rotate(314deg) brightness(98%) contrast(101%); /* Turns the light color to red */
   --color-blanco: #FFFFFF;     /* Blanco */
   --color-mas-oscuro: #011F33; /* Más oscuro */
   --color-gris: #a09aac;       /* Gris */
@@ -14,6 +15,7 @@
   --color-seleccion: #CA8FFD;  /* Selección */
   --color-seleccion-semitransparente: rgba(202,143,253,0.25); /* Selección semitransparente */
   --color-correcto: #8FFDB2;   /* Correcto */
+  --color-filter-correcto: brightness(0) saturate(100%) invert(84%) sepia(23%) saturate(686%) hue-rotate(80deg) brightness(105%) contrast(98%); /* Turns the light color to green */
 
   --shadow-focus-grande: 0px 0px 12px 8px var(--color-seleccion);
   --shadow-focus-pequeno: 0px 0px 6px 4px var(--color-seleccion);

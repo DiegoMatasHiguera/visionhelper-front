@@ -1,5 +1,5 @@
 <template>
-    <div :class="classTitulo">
+    <div :class="[classTitulo, { sombreado: sombreado }]">
         {{ texto }}
     </div>
 </template>
@@ -18,21 +18,25 @@ export default {
         classTitulo: {
             type: String,
             default: 'titulo-oscuro'
+        },
+        sombreado: {
+            type: Boolean,
+            default: false
         }
     }
 };
 </script>
 
 <style scoped>
-.titulo-claro, .titulo-oscuro {
+* {
   text-align: center;
   border-radius: 8px;
 
   font-weight: var(--font-peso-bold);
   font-size: 18px;
 
-  padding: 15px;
-  margin: 10px;
+  padding: 10px;
+  margin: 5px;
 }
 
 .titulo-claro {
@@ -44,7 +48,22 @@ export default {
   background-color: var(--color-mas-oscuro);
 }
 
-.titulo-resalte {
-  color: var(--color-resalte);
+.titulo-resalte {       
+    color: var(--color-mas-oscuro);
+    background-color: var(--color-resalte);
+}
+
+.titulo-disabled {
+    background-color: transparent;
+    border-style: dashed;
+    border-width: 4px;
+    border-color: var(--color-mas-oscuro);
+    cursor: not-allowed;
+
+    box-shadow: none;
+}
+
+*.sombreado {
+    box-shadow: var(--shadow-focus-pequeno);
 }
 </style>

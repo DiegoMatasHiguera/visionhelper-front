@@ -1,34 +1,15 @@
 <template>
   <div class="box">
       <div class="paneles">
-        <Panel class="resumen">
-          <div class="fila">
-            <div class="fila-label">· Acondicionamiento:</div>
-            <div>{{ acondicionamiento }}</div>
-          </div>
-          <div class="fila">
-            <div class="fila-label">· Pretratamiento:</div>
-            <div>{{ pretratamiento }}</div>
-          </div>
-          <div class="fila">
-            <div class="fila-label">· Agitación:</div>
-            <div v-if="agitacion.includes('http://') || agitacion.includes('https://')"><a :href="agitacion" target="_blank">Ver instrucciones</a></div>
-            <div v-else>{{ agitacion }}</div>
-          </div>
-          <div class="fila">
-            <div class="fila-label">· Polarizador:</div>
-            <div>{{ polarizador ? 'Sí' : 'No' }}</div>
-          </div>
-          <div class="fila">
-            <div class="fila-label">· Lupa:</div>
-            <div>{{ lupa }}x</div>
-          </div>
-          <div class="fila">
-            <div class="fila-label">· Tiempo mínimo de observación/campo:</div>
-            <div>{{ tiempo_min_obs }} segundos</div>
-          </div>
-          <TextArea id="observaciones" label="Observaciones" :modelValue="!observaciones?.trim() ? 'N/A' : observaciones" readonly="true"/>
-        </Panel>
+        <TestResumenPanel class="resumen"
+          :acondicionamiento="acondicionamiento"
+          :pretratamiento="pretratamiento"
+          :agitacion="agitacion"
+          :polarizador="polarizador"
+          :lupa="lupa"
+          :tiempo_min_obs="tiempo_min_obs"
+          :observaciones="observaciones"
+        />
         <Panel class="limitado">
           <Titulo texto="Posición de observación"/>
             <div class="fila">
@@ -97,6 +78,7 @@ import Button from '@/components/Button.vue';
 import Panel from '@/components/Panel.vue';
 import Titulo from '@/components/Titulo.vue';
 import TextArea from '@/components/TextArea.vue';
+import TestResumenPanel from '@/components/TestResumenPanel.vue';
 
 export default {
   name: 'MuestreoView',
@@ -105,6 +87,7 @@ export default {
     Panel,
     Titulo,
     TextArea,
+    TestResumenPanel
   },
   props: {
     statusPopup: Object,
@@ -226,7 +209,7 @@ export default {
         this.acondicionamiento = this.testStore.producto_seleccionado.acondicionamiento;
         this.pretratamiento = this.testStore.producto_seleccionado.pretratamiento;
         this.agitacion = this.testStore.producto_seleccionado.agitacion;
-        this.polarizador = this.testStore.producto_seleccionado.polarizador;
+        this.polarizador = this.testStore.producto_seleccionado.polarizador === 1 ? true : false;
         this.lupa = this.testStore.producto_seleccionado.lupa;
         this.tiempo_min_obs = this.testStore.producto_seleccionado.tiempo_min_obs;
         this.lux_min = this.testStore.producto_seleccionado.lux_min;
@@ -348,6 +331,8 @@ export default {
 .limitado {
   min-width: 350px;
   max-width: 350px;
+  
+  justify-content: space-between;
 }
 
 .fila {
@@ -397,11 +382,11 @@ export default {
 }
 
 .bombilla-relleno.excedido {
-  filter: brightness(0) saturate(100%) invert(63%) sepia(6%) saturate(4123%) hue-rotate(314deg) brightness(98%) contrast(101%); /* Turns the light color to red */
+  filter: var(--color-filter-error);
 }
 
 .bombilla-relleno.correcto {
-  filter: brightness(0) saturate(100%) invert(84%) sepia(23%) saturate(686%) hue-rotate(80deg) brightness(105%) contrast(98%); /* Turns the light color to green */
+  filter: var(--color-filter-correcto);
 }
 
 .instrucciones {

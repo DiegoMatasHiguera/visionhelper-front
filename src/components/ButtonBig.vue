@@ -1,6 +1,6 @@
 <template>
-    <button class="button-big">
-        <img :src="imagen" :alt="texto" class="button-icon" />
+    <button class="button-big" :class="{selected: selected}">
+        <img :src="imagen" :alt="texto" class="button-icon" :class="imagen_color_interna"/>
         {{ texto }}
         <div v-if="texto_notificacion != ''" :class="notificacion">{{texto_notificacion}}</div>
     </button>
@@ -19,13 +19,23 @@ export default {
     name: 'ButtonBig',
     props: {
         imagen: String,
+        imagen_color: {
+            type: String,
+            default: '',
+            validator: value => ['','rojo', 'verde'].includes(value),
+        },
         texto: String,
         tipo_notificacion: String,
-        texto_notificacion: String
+        texto_notificacion: String,
+        selected: {
+            type: Boolean,
+            default: false
+        }
     },
     data() {
         return {
-            notificacion: "notificacion " + this.tipo_notificacion
+            notificacion: "notificacion " + this.tipo_notificacion,
+            imagen_color_interna: this.imagen_color
         };
     }
 };
@@ -36,7 +46,15 @@ export default {
   filter: var(--color-filter-principal);
   height: 100px;
 
-  margin: 25px;
+  margin: 20px;
+}
+
+.button-icon.rojo {
+  filter: var(--color-filter-error);
+}
+
+.button-icon.verde {
+  filter: var(--color-filter-correcto);
 }
 
 .button-big {
@@ -44,19 +62,22 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  
-  width: 180px;
-  height: 225px;
 
   margin-left: 20px;
   margin-right: 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+  padding: 15px;
   
   font-weight: var(--font-peso-bold);
   font-size: 28px;
 
   position: relative;
+}
+
+.button-big.selected {
+  background-color: var(--color-seleccion);
 }
 
 .notificacion {

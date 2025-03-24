@@ -41,8 +41,8 @@ import { readonly } from 'vue';
             default: ''
         },
         readonly: {
-            type: String,
-            default: "false"
+            type: Boolean,
+            default: false
         },
     },
     computed: {
@@ -61,6 +61,7 @@ import { readonly } from 'vue';
 <style scoped>
 label {
     font-weight: var(--font-peso-semibold);
+    margin-bottom: 5px;
 }
 
 .textarea {
@@ -70,7 +71,7 @@ label {
     justify-content: flex-start;
 
     width: 100%;
-    margin: 10px;
+    margin: 5px;
 }
 
 .textarea textarea {    
