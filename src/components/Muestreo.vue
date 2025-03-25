@@ -163,7 +163,7 @@
     .circle.muestreo {
         background-color: var(--color-resalte);
         color: var(--color-mas-oscuro);
-        font-size: 75%;
+        font-size: 100%;
         text-align: center;
         overflow: hidden;
     }

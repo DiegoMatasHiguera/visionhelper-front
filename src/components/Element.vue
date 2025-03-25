@@ -1,8 +1,8 @@
 <template>
-    <button :class="type" :disabled="disabled">
+    <button :class="type" :disabled="disabled" :title="tipo">
         <div>{{ texto }}</div>
         <img v-if="tipo=='Nuevo'" src="@/assets/nuevo.svg" alt="Nuevo" class="icono"/>
-        <img v-if="tipo=='Muestreando'" src="@/assets/muestreando.svg" alt="Muestreando" class="icono"/>
+        <img v-if="tipo=='Muestrando'" src="@/assets/muestrando.svg" alt="Muestrando" class="icono"/>
         <img v-if="tipo=='Visualizando'" src="@/assets/visualizando.svg" alt="Visualizando" class="icono"/>
         <img v-if="tipo=='Bloqueado'" src="@/assets/rechazado.svg" alt="Bloqueado" class="icono"/>
         <div v-if="persona!=''" class="persona">{{ persona }}</div>
@@ -22,7 +22,7 @@ export default {
         tipo: {
             type: String,
             default: 'Disponible',
-            validator: value => ['Disponible', 'Nuevo', 'Muestreando', 'Visualizando', 'Aceptado', 'Rechazado'].includes(value),
+            validator: value => ['Disponible', 'Nuevo', 'Muestrando', 'Visualizando', 'Aceptado', 'Rechazado'].includes(value),
             required: false
         },
         persona: {
@@ -69,6 +69,11 @@ export default {
     box-shadow: none;
 }
 
+.icono {
+    height: 30px;
+    margin-left: 10px;
+}
+
 .elemento:hover {
     box-shadow: var(--shadow-focus-pequeno);
 }
@@ -85,7 +90,7 @@ export default {
     background: var(--color-nuevo-elemento);
 }
 
-.elemento.Muestreando, .elemento.Visualizando {
+.elemento.Muestrando, .elemento.Visualizando {
     background-color: var(--color-resalte);
 }
 

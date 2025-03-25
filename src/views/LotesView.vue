@@ -10,6 +10,7 @@
               :tipo="producto.estado"
               :disabled="producto.estado == 'Bloqueado' ? true : false"
               :seleccionado="producto.id == clickadoProducto ? true : false"
+              :persona="producto.ult_usuario ? producto.ult_usuario :''"
               @click="clickarProducto(producto)"
             />
           </div>
@@ -23,6 +24,7 @@
               :tipo="lote.estado"
               :disabled="lote.estado == 'Bloqueado' ? true : false"
               :seleccionado="lote.id == clickadoLote"
+              :persona="lote.ult_usuario ? lote.ult_usuario :''"
               @click="clickarLote(lote)"
             />
           </div>
@@ -36,6 +38,7 @@
               :tipo="test.estado"
               :disabled="test.estado == 'Bloqueado' ? true : false"
               :seleccionado="test.id == clickadoTest"
+              :persona="test.ult_usuario ? test.ult_usuario :''"
               @click="clickarTest(test)"
             />
           </div>
@@ -113,20 +116,21 @@ export default {
                       // Primero asignamos coloritos a los lotes según los tests disponibles
                       if (test.estado == "Nuevo") {
                         lote.estado = test.estado;
-                      } else if (test.estado == "Muestreando" || test.estado == "Visualizando") {
+                      } else if (test.estado == "Muestrando" || test.estado == "Visualizando") {
                         if (lote.estado != "Nuevo") {
                           if (test.ult_usuario == this.authStore.user_email) {
                             lote.estado = test.estado;
                           } else {
                             lote.estado = "Bloqueado";
+                            lote.persona = test.ult_usuario;
                           }
                         }
                       } else if (test.estado == "Bloqueado") {
-                        if (lote.estado != "Nuevo" && lote.estado != "Muestreando" && lote.estado != "Visualizando") {
+                        if (lote.estado != "Nuevo" && lote.estado != "Muestrando" && lote.estado != "Visualizando") {
                           lote.estado = test.estado;
                         }
                       } else {
-                        if (lote.estado != "Nuevo" && lote.estado != "Muestreando" && lote.estado != "Visualizando" && lote.estado != "Bloqueado") {
+                        if (lote.estado != "Nuevo" && lote.estado != "Muestrando" && lote.estado != "Visualizando" && lote.estado != "Bloqueado") {
                           lote.estado = "Disponible";
                         }
                       }
@@ -138,16 +142,17 @@ export default {
                   // Luego asignamos coloritos a los productos según los lotes disponibles
                   if (lote.estado == "Nuevo") {
                     producto.estado = lote.estado;
-                  } else if (lote.estado == "Muestreando" || lote.estado == "Visualizando") {
+                  } else if (lote.estado == "Muestrando" || lote.estado == "Visualizando") {
                     if (producto.estado != "Nuevo") {
                       producto.estado = lote.estado;
                     }
                   } else if (lote.estado == "Bloqueado") {
-                    if (producto.estado != "Nuevo" && producto.estado != "Muestreando" && producto.estado != "Visualizando") {
+                    if (producto.estado != "Nuevo" && producto.estado != "Muestrando" && producto.estado != "Visualizando") {
                       producto.estado = lote.estado;
+                      producto.persona = test.ult_usuario;
                     }
                   } else {
-                    if (producto.estado != "Nuevo" && producto.estado != "Muestreando" && producto.estado != "Visualizando" && producto.estado != "Bloqueado") {
+                    if (producto.estado != "Nuevo" && producto.estado != "Muestrando" && producto.estado != "Visualizando" && producto.estado != "Bloqueado") {
                       producto.estado = "Disponible";
                     }
                   }
@@ -320,7 +325,11 @@ export default {
       // Almacenar el test en el store
       this.testStore.test_seleccionado = test;
 
-      this.$router.push(`/muestreo/${test.id}`);
+      if (test.estado == "Visualizando") {
+        this.$router.push(`/test/${test.id}`);
+      } else {
+        this.$router.push(`/muestreo/${test.id}`);
+      }
     },
 
     /**

@@ -6,7 +6,7 @@
           <FormInput v-model="num_bandejas" label="Nº bandejas" type="number" @input="recalcular"/>
           <FormInput v-model="num_filas" label="Nº filas/bandeja" type="number" @input="recalcular"/>
           <FormInput v-model="num_uds_fila" label="Nº unidades/fila" type="number" @input="recalcular"/>
-          <FormInput v-model="num_uds_total" label="Nº unidades totales" type="number"/>
+          <FormInput v-model="num_uds_total" label="Nº unidades totales" type="number" @input="recalcularUds"/>
           <div class="fila">            
             <Toggle id="tresbolillo" v-model="tresbolillo" label="Tresbolillo"/>
             <Toggle id="alternado" v-model="alternado" label="Alternado" :disabled="alternado_disabled"/>
@@ -88,19 +88,6 @@ export default {
         this.alternado_disabled = false;
       }
     },
-    
-    // Re-generate bandejas when num_uds_total changes
-    num_uds_total() {
-      if (this.num_uds_total < 1) {
-        this.num_uds_total = 1;
-      } else if (this.num_uds_total > this.num_filas*this.num_uds_fila*this.num_bandejas) {
-        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
-      } else if (this.num_uds_total < this.num_filas*this.num_uds_fila*(this.num_bandejas-1)) {
-        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
-      }
-      this.generatePlanMuestreo();
-      this.generateBandejas();
-    },
   },
   //Called when the component is created
   async mounted() {    
@@ -117,10 +104,33 @@ export default {
         this.AppInfoStore.generarTitle();
         
         this.tituloText = "Tipo muestreo: "+this.testStore.muestreo_seleccionado.nombre;
+        await this.cambiarEstado("Muestrando");
       }
     }
   },
   methods: {
+
+    /**
+     * @method cambiarEstado
+     * @description Cambia el estado del test.
+    */
+    async cambiarEstado(estado) {
+      const urlSolicitud = this.AppInfoStore.environment+"/tests/cambiarEstado/"+this.$route.params.testId;
+      const jsonEnvio = {
+        estado: estado,
+      };
+
+      try {
+        const response = await protectedRoute.accessProtectedRoute().post(urlSolicitud, jsonEnvio);
+
+        return true;
+      } catch (error) {
+        protectedRoute.handleError(error, this.statusPopup);         
+
+        return false;
+      }
+    },
+
     /**
      * @method recalcular
      * @description Recalcula el número de unidades totales.
@@ -137,6 +147,23 @@ export default {
       }
 
       this.num_uds_total = this.num_filas * this.num_uds_fila * this.num_bandejas;
+      this.recalcularUds();
+    },
+
+    /**
+     * @method recalcularUds
+     * @description Regenera bandejas y plan de muestreo cuando cambia el nº de unidades.
+    */
+    recalcularUds() {
+      if (this.num_uds_total < 1) {
+        this.num_uds_total = 1;
+      } else if (this.num_uds_total > this.num_filas*this.num_uds_fila*this.num_bandejas) {
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
+      } else if (this.num_uds_total < this.num_filas*this.num_uds_fila*(this.num_bandejas-1)) {
+        this.num_bandejas = Math.ceil(this.num_uds_total / this.num_uds_fila / this.num_filas);
+      }
+      this.generatePlanMuestreo();
+      this.generateBandejas();
     },
 
     /**
@@ -202,17 +229,8 @@ export default {
      * @description Genera un plan de muestreo, dependiendo del tipo de muestreo seleccionado (azar, sistemático, homogéneo).
     */
     generatePlanMuestreo() {
-      let muestras_a_tomar = 0;
-      if (this.testStore.muestreo_seleccionado.cada != 0) {
-        muestras_a_tomar = this.testStore.muestreo_seleccionado.cantidad 
-          * this.testStore.muestreo_seleccionado.cada;
-        if (muestras_a_tomar > this.num_uds_total) {
-          muestras_a_tomar = this.num_uds_total;
-        }
-      } else {
-        muestras_a_tomar = Math.ceil(this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total);
-      }
-
+      let muestras_a_tomar = Math.ceil(this.testStore.muestreo_seleccionado.cantidad/100 * this.num_uds_total);
+      
       var indicesMuestreo = [];      
       var muestrasRestantes = muestras_a_tomar;
 
@@ -242,22 +260,23 @@ export default {
         var pasoActual = 0;
         while (muestrasRestantes > 0) {
           var indice = puntoInicio+pasoActual;                   
-          if (indice >= this.num_uds_total) {
-            puntoInicio = indice - this.num_uds_total;
+          if (indice >= (this.num_uds_total-this.testStore.muestreo_seleccionado.cada)) {
+            puntoInicio = indice - (this.num_uds_total-this.testStore.muestreo_seleccionado.cada);
             pasoActual = 0;
             indice = puntoInicio;
           }
-          if (indicesMuestreo.includes(indice)) {
-            pasoActual++;
-            continue;
-          }
-          indicesMuestreo.push(indice);
 
-          muestrasRestantes--;
           if (this.testStore.muestreo_seleccionado.cada > 0) {          
             pasoActual += this.testStore.muestreo_seleccionado.cada;
           } else {
             pasoActual++;
+          }
+          
+          if (indicesMuestreo.includes(indice)) {
+            puntoInicio++;
+          } else {
+            indicesMuestreo.push(indice);
+            muestrasRestantes--;
           }
         }
       } else if (this.testStore.muestreo_seleccionado.tipo == "homogéneo") {
@@ -279,6 +298,7 @@ export default {
       this.bandejas = [];
       var numMuestrasInicio = 0;
       var circlesAcumulados = 0;
+      var indiceBandejaPrev = 0;
 
       for (let i = 0; i < this.num_bandejas; i++) {
         var circlesPerBandeja = 0;
@@ -296,12 +316,14 @@ export default {
         
         // Metemos los índices de las muestras a tomar
         var numMuestras = 0;
+        var indiceBandejaNext = indiceBandejaPrev + circlesPerBandeja;
         for (let j = 0; j < this.udsMuestreo.length; j++) {
-          if (this.udsMuestreo[j] >= i*circlesPerBandeja && this.udsMuestreo[j] < (i+1)*circlesPerBandeja) {
-            muestreoCircles.push(this.udsMuestreo[j] - i*circlesPerBandeja);
+          if (this.udsMuestreo[j] >= indiceBandejaPrev && this.udsMuestreo[j] < indiceBandejaNext) {
+            muestreoCircles.push(this.udsMuestreo[j] - indiceBandejaPrev);
             numMuestras++;
           }
         }
+        var indiceBandejaPrev = indiceBandejaNext;
 
         var rowsFinal = this.num_filas;
         if (this.alternado) {
@@ -366,7 +388,8 @@ export default {
      * @method atras
      * @description Vuelve a la página anterior.
     */
-    atras() {      
+    async atras() {
+      await this.cambiarEstado("Disponible");      
       this.$router.push('/lotes');
     },
 
@@ -375,7 +398,9 @@ export default {
      * @description Continúa a la página de resumen previo.
     */
     async continuar() {
-      await this.guardarMuestreo();
+      if (this.testStore.muestreo_info_adicional == null) {
+        await this.guardarMuestreo();
+      }
       this.$router.push(`/resumenPrevio/${this.testStore.test_seleccionado.id}`);
     }
   }

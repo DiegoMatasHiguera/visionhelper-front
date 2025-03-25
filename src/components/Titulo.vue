@@ -53,6 +53,15 @@ export default {
     background-color: var(--color-resalte);
 }
 
+.titulo-correcto {    
+    color: var(--color-mas-oscuro);
+    background-color: var(--color-correcto);
+}
+
+.titulo-error {       
+    background-color: var(--color-error);
+}
+
 .titulo-disabled {
     background-color: transparent;
     border-style: dashed;
@@ -61,6 +70,10 @@ export default {
     cursor: not-allowed;
 
     box-shadow: none;
+}
+
+.titulo-hidden {
+    display: none;
 }
 
 *.sombreado {

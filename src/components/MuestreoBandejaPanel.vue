@@ -3,11 +3,11 @@
       <div class="fila">
         <div>
           <button class="botonPeque" @click="prevBandeja">
-            &lt;
+             &lt; 
           </button> 
           Bandeja nº: {{ bandejaActual + 1 }} de {{ bandejas.length }}
           <button class="botonPeque" @click="nextBandeja">
-            &gt;
+             &gt; 
           </button>
         </div>
         <div>Muestras a tomar: <span class="muestrasTomar"> {{ muestrasATomar }}</span></div>
@@ -160,8 +160,10 @@
   }
   
   .botonPeque {
+    font-size: 18px;
     background-color: var(--color-mas-oscuro);
     box-shadow: 0px 2px 2px 1px rgba(0, 0, 0, 0.5);
+    padding: 5px;
     margin: 5px;
   }
   

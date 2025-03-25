@@ -63,6 +63,8 @@ export default {
   align-items: center;
   justify-content: center;
 
+  min-width: 125px;
+
   margin-left: 20px;
   margin-right: 20px;
   margin-top: 10px;
@@ -101,5 +103,24 @@ export default {
 .notificacion.roja {
   color: var(--color-principal);
   background-color: var(--color-error);
+}
+
+@media (max-width: 750px) {
+  .button-big {
+    font-size: 20px;
+  }
+
+  .button-icon {
+    height: 50px;
+    margin: 10px;
+  }
+
+  .notificacion {
+    width: 30px;
+    height: 30px;
+    top: -15px;
+    right: -15px;
+    line-height: 30px;
+  }
 }
 </style>
