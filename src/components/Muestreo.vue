@@ -66,13 +66,10 @@
     },
     watch: {
         muestreoCircles() {
-            // Pre-calculate all sample numbers
-            let currentNum = this.numMuestrasInicio;
-            this.muestraNumbers = {};
-            for (const index of this.muestreoCircles) {      
-                this.muestraNumbers[index] = currentNum + 1;
-                currentNum++;
-            }
+            this.updateMuestraNumbers();
+        },
+        numMuestrasInicio() {
+            this.updateMuestraNumbers();
         }
     },
     computed: {
@@ -92,7 +89,20 @@
         }
       }
     },
+    created() {
+        // Initialize muestraNumbers when component is created
+        this.updateMuestraNumbers();
+    },
     methods: {
+        updateMuestraNumbers() {            
+            // Pre-calculate all sample numbers
+            let currentNum = this.numMuestrasInicio;
+            this.muestraNumbers = {};
+            for (const index of this.muestreoCircles) {      
+                this.muestraNumbers[index] = currentNum + 1;
+                currentNum++;
+            }
+        },
         isMuestreoCircle(index) {
             return this.muestreoCircles.includes(index);
         },

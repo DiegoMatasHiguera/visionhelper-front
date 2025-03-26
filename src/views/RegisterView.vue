@@ -142,10 +142,7 @@ export default {
 
       try {
         const response = await axios.post(urlLogin, jsonEnvio);
-
-        // Store tokens, email, usuario y tipo
-        authStore.setInfo(access_token, refresh_token, user_email, user_name, tipo);
-
+        
         // Mostrar mensaje de éxito
         this.statusPopup.removePopup(idPopupLoading);
         this.statusPopup.showSuccess('Registro exitoso', 'Redireccionando a login...');
@@ -156,7 +153,7 @@ export default {
         }, 1500);
       } catch (error) {
         var errorMessage = "";
-        if (error.response.data) {
+        if (error.response && error.response.data) {
           for (const key in error.response.data) {
             errorMessage += `${key}: ${error.response.data[key]}\n`;
           }

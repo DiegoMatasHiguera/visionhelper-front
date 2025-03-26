@@ -68,6 +68,18 @@
         if (this.bandejaActual >= this.bandejas.length) {
           this.bandejaActual = 0;
         }
+      },
+      bandejaActual() {
+          // Add this to ensure the currentMuestra is properly highlighted when changing bandejas
+          this.$nextTick(() => {
+              this.locateMuestra();
+          });
+      },
+      currentMuestra() {
+          // Add this to ensure the currentMuestra is highlighted when it changes
+          this.$nextTick(() => {
+              this.locateMuestra();
+          });
       }
     },
     computed: {

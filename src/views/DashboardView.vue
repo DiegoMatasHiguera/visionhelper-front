@@ -17,6 +17,8 @@
       texto="Exámenes"
       :texto_notificacion="texto_examenes_nuevos"
       :tipo_notificacion="cualificado ? 'amarilla' : 'roja'"
+      disabled
+      title="Pendiente implementar..."
     />
   </div>
 </template>
