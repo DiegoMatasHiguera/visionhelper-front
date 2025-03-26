@@ -1,6 +1,4 @@
 <template>
-  <audio ref="timerSound" :src="timer_sonido_source" preload="auto"></audio>
-  <audio ref="registradoSound" :src="registrado_sonido_source" preload="auto"></audio>
   <div class="box">
       <div class="paneles">
         <div class="columna">
@@ -36,27 +34,6 @@
             :tiempo_min_obs="tiempo_min_obs"
             :observaciones="observaciones"
           />
-          <div class="botones">
-            <div class="fila" v-if="!media">
-              <Button @click="udPrevia" texto="⬅️ Unidad previa" :disabled="unidad_numero <= 1"/>
-              <Button @click="udSiguiente" texto="Unidad siguiente ➡️" :disabled="unidad_numero >= unidades_revisadas"/> 
-            </div>
-            <div class="fila" v-if="!media">
-              <Button @click="sonidoToggle" :texto="sonido ? '🔇 Desactivar sonido' : '🔊 Activar sonido'"/>
-              <Button @click="pausarToggle(!pausa)" :texto="pausa ? '▶️ Reanudar' : '⏸️ Pausa'"/> 
-            </div>
-            <Button @click="atras" texto="Atrás"/>
-          </div>          
-        </div>
-        <div class="columna" id="columna-unidad">
-          <div class="fila" v-if="media">
-              <Button @click="udPrevia" texto="⬅️ Unidad previa" :disabled="unidad_numero <= 1"/>
-              <Button @click="udSiguiente" texto="Unidad siguiente ➡️" :disabled="unidad_numero >= unidades_revisadas"/> 
-          </div>
-          <div class="fila" v-if="media">
-            <Button @click="sonidoToggle()" :texto="sonido ? '🔇 Desactivar sonido' : '🔊 Activar sonido'"/>
-            <Button @click="pausarToggle(!pausa)" :texto="pausa ? '▶️ Reanudar' : '⏸️ Pausa'"/> 
-          </div>
           <Panel class="testinfo">
           <div class="unidad-titulo">Unidad {{ unidad_numero }} de {{ cantidad_unidades }}</div>
           <div class="fila">
@@ -191,7 +168,7 @@ export default {
       if (this.testStore.muestreo_info_adicional != null) {
         var num_uds = 0;
         for (const bandeja of this.testStore.muestreo_info_adicional.bandejas) {
-          num_uds += bandeja.muestreoCircles.length;
+          num_uds += bandeja.circlesPerBandeja;
         }
         return num_uds;
       } else {
@@ -276,7 +253,6 @@ export default {
       const urlSolicitud = this.AppInfoStore.environment+"/tests/cambiarEstado/"+this.$route.params.testId;
       const jsonEnvio = {
         estado: estado,
-        fecha_fin: new Date().toISOString().split('T')[0],
       };
 
       try {
@@ -388,8 +364,8 @@ export default {
         this.pauseTimer();
       } else {        
         this.pausa = false;
-        if (this.estado_actual == "Aceptada" || this.estado_actual == "Rechazada" || this.estado_actual == "Pausado") {
-          this.loadUnidad(this.unidades.length+1);  
+        if (this.estado_actual != "Agitando") {
+          this.loadUnidad(this.unidades.length+1);
         }
         this.sonido_sonado = false;
         this.playRegistradoSound();        
@@ -430,7 +406,7 @@ export default {
         fecha_creacion: new Date().toISOString().split('T')[0],
       };
 
-      if (rechazada) {
+      if (this.estado_actual == 'Rechazada') {
         jsonEnvio.campo_vision = this.campo_actual;
       }
 
@@ -473,10 +449,7 @@ export default {
             this.$router.push(`/resumenFinal/${this.testStore.test_seleccionado.id}`);
           }
         }
-
-        // Esto solo se ejecuta cuando no es pausa
-        this.campo_vision = "Fondo Negro";
-
+        
         this.loadUnidad(this.unidad_numero+1);        
       } catch (error) {
         protectedRoute.handleError(error, this.statusPopup);
@@ -548,7 +521,7 @@ export default {
      * @description Carga la información de la unidad seleccionada.
      * @param {Number} unidad_numero - El número de la unidad a cargar.
      */
-      loadUnidad(unidad_numero) {
+    loadUnidad(unidad_numero) {
       const indice = unidad_numero-1;
       if (indice < this.unidades.length) {
         if (this.unidades[indice].tiene_particula) {
@@ -562,20 +535,13 @@ export default {
         this.observaciones_unidad = this.unidades[indice].descripcion;
         if (this.unidades[indice].usuario_revision != this.authStore.user_email) {
           this.revisado_por = this.unidades[indice].usuario_revision;
-        } else {
-          this.revisado_por = "";
         }
       } else {
         if (!this.pausa) {
           this.estado_actual = "Agitando";
         }
-        if (this.campo_actual != "Fondo Negro" && this.campo_actual != "Fondo Blanco") {
-          this.campo_actual = "Fondo Negro";
-        }
-        this.tiempo_estado = 0;        
-        this.tiempo_unidad = 0;
-        this.observaciones_unidad = "";         
-        this.revisado_por = "";
+        this.tiempo_estado = 0;
+        this.observaciones_unidad = "";
       }      
       this.unidad_numero = unidad_numero;      
       this.sonido_sonado = false;

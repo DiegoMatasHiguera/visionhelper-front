@@ -14,10 +14,10 @@ export default {
     const route = useRoute();
 
     const currentHeader = computed(() =>
-      route.path === "/login" ? "HeaderLogin" : "Header"
+      route.path === "/login" || route.path === "/register" ? "HeaderLogin" : "Header"
     );
 
-    const showFooter = computed(() => route.path !== "/login");
+    const showFooter = computed(() => (route.path !== "/login" && route.path !== "/register"));
 
     const isReady = ref(false);
 

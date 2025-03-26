@@ -62,6 +62,11 @@
         <Button @click="atras" 
           texto="Atrás" 
         />
+        <Button @click="eliminar" 
+          :texto="eliminarTexto"
+          :disabled="guardarDisabled || eliminarEstado > 2"
+          class="eliminar" 
+        />
       </div>      
   </div>
 </template>
@@ -72,6 +77,7 @@
  * @description La página donde el usuario puede editar la información del perfil.
  */
 import protectedRoute from '@/helpers/protectedRoute';
+import { validatePasswordComplexity, getPasswordValidationMessage } from '@/helpers/passwordValidator';
 import { useAppInfoStore } from '@/stores/AppInfoStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useTestsStore } from '@/stores/testStore';
@@ -126,6 +132,8 @@ export default {
       new_password: '',
       new_again_password: '',
       guardarDisabled: true,
+      eliminarEstado: 0,
+      eliminarTexto: 'Eliminar cuenta',
     };
   },
   //Called when the component is created
@@ -264,65 +272,55 @@ export default {
       this.$router.push('/');
     },
     
-    validatePassword(password) {
-      // At least 8 characters
-      if (password.length < 8) {
-        return false;
-      }
-      
-      // Contains uppercase letter
-      if (!/[A-Z]/.test(password)) {
-        return false;
-      }
-      
-      // Contains lowercase letter
-      if (!/[a-z]/.test(password)) {
-        return false;
-      }
-      
-      // Contains number
-      if (!/[0-9]/.test(password)) {
-        return false;
-      }
-      
-      // Contains special character
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        return false;
-      }
-      
-      return true;
-    },
-  
-    getPasswordErrorMessage(password) {
-      let errors = [];
-      
-      if (password.length < 8) {
-        errors.push("al menos 8 caracteres");
-      }
-      
-      if (!/[A-Z]/.test(password)) {
-        errors.push("una letra mayúscula");
-      }
-      
-      if (!/[a-z]/.test(password)) {
-        errors.push("una letra minúscula");
-      }
-      
-      if (!/[0-9]/.test(password)) {
-        errors.push("un número");
-      }
-      
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        errors.push("un carácter especial");
-      }
-      
-      if (errors.length === 0) {
-        return "La nueva contraseña es válida.";
+    /**
+     * @method eliminar
+     * @description Elimina la cuenta del usuario.
+    */
+    async eliminar() {
+      if (this.eliminarEstado === 0) {
+        this.eliminarTexto = '¿Estás seguro (pulsa dos veces más)?';
+        this.eliminarEstado = 1;
+        return;
+      } else if (this.eliminarEstado === 1) {
+        this.eliminarTexto = '¡Última oportunidad!';
+        this.eliminarEstado = 2;
+        return;
       } else {
-        return "La contraseña debe contener " + errors.join(", ") + ".";
+        this.eliminarTexto = 'Eliminando cuenta...';
+        this.eliminarEstado = 3;
+        
+        const urlSolicitud = "/auth/remove/"+this.authStore.user_email;
+
+        try {
+          const response = await protectedRoute.accessProtectedRoute().delete(urlSolicitud);
+
+          this.authStore.clearInfo();
+          this.$router.push('/login');
+        } catch (error) {
+          this.statusPopup.removePopup(idPopupLoading);
+          protectedRoute.handleError(error, this.statusPopup);
+        }
       }      
     },
 
+    /**
+     * @method validatePassword
+     * @description Valida la complejidad de una contraseña.
+     * @param {String} password - La contraseña a validar.
+     * @returns {Boolean} - Si la contraseña es válida.
+    */
+    validatePassword(password) {
+      return validatePasswordComplexity(password);
+    },
+  
+    getPasswordErrorMessage(password) {
+      return getPasswordValidationMessage(password);
+    },
+
+    /**
+     * @method guardar
+     * @description Guarda la información del usuario.
+    */
     async guardar() {
       // Show loading popup
       const idPopupLoading = this.statusPopup.showLoading('Guardando', 'Guardando información del usuario...');
@@ -436,6 +434,10 @@ export default {
   justify-content: center;
 }
 
+.eliminar {
+  background-color: var(--color-error);
+}
+
 .error {
   color: var(--color-error);
 }
@@ -450,6 +452,8 @@ export default {
   height: 140px;
 
   border: 6px solid var(--color-mas-oscuro);
+
+  margin: 10px;
 
   border-radius: 50%; /* Creates a perfect circle */
   object-fit: cover; /* Ensures the image covers the area without distortion */

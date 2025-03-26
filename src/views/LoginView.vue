@@ -16,6 +16,9 @@
       <div class="forgot-password">
         <a href="#" title="Pendiente implementar..." disabled>¿Olvidaste tu contraseña?</a>
       </div>
+      <div class="forgot-password">
+        <router-link to="/register">Registrarse</router-link>
+      </div>
       <Button
         texto="Entrar"
         type="submit"

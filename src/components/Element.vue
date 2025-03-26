@@ -1,11 +1,13 @@
 <template>
-    <button :class="type" :disabled="disabled" :title="tipo">
+    <button v-if="!hidden" :class="type" :disabled="disabled" :title="tipo">
         <div>{{ texto }}</div>
         <img v-if="tipo=='Nuevo'" src="@/assets/nuevo.svg" alt="Nuevo" class="icono"/>
         <img v-if="tipo=='Muestrando'" src="@/assets/muestrando.svg" alt="Muestrando" class="icono"/>
         <img v-if="tipo=='Visualizando'" src="@/assets/visualizando.svg" alt="Visualizando" class="icono"/>
         <img v-if="tipo=='Bloqueado'" src="@/assets/rechazado.svg" alt="Bloqueado" class="icono"/>
-        <div v-if="persona!=''" class="persona">{{ persona }}</div>
+        <img v-if="tipo=='Aceptado'" src="@/assets/aceptado.svg" alt="Aceptado" class="icono"/>
+        <img v-if="tipo=='Rechazado'" src="@/assets/rechazado.svg" alt="Rechazado" class="icono"/>
+        <div v-if="persona!='' && (tipo=='Muestreando' || tipo=='Visualizando')" class="persona">({{ persona }})</div>
     </button>
 </template>
 
@@ -22,7 +24,7 @@ export default {
         tipo: {
             type: String,
             default: 'Disponible',
-            validator: value => ['Disponible', 'Nuevo', 'Muestrando', 'Visualizando', 'Aceptado', 'Rechazado'].includes(value),
+            validator: value => ['Disponible', 'Nuevo', 'Muestrando', 'Visualizando', 'Bloqueado', 'Aceptado', 'Rechazado', 'hidden'].includes(value),
             required: false
         },
         persona: {
@@ -34,6 +36,10 @@ export default {
             default: false
         },
         disabled: {
+            type: Boolean,
+            default: false
+        },
+        hidden: {
             type: Boolean,
             default: false
         }
@@ -72,6 +78,14 @@ export default {
 .icono {
     height: 30px;
     margin-left: 10px;
+}
+
+.persona {
+    font-size: 12px;
+    margin-left: 10px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .elemento:hover {

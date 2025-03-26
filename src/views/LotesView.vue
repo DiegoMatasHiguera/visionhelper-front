@@ -6,11 +6,11 @@
           <div class="lista">
             <Element
               v-for="producto in this.productos"
+              :hidden="producto.hidden"
               :texto="producto.nombre"
               :tipo="producto.estado"
               :disabled="producto.estado == 'Bloqueado' ? true : false"
               :seleccionado="producto.id == clickadoProducto ? true : false"
-              :persona="producto.ult_usuario ? producto.ult_usuario :''"
               @click="clickarProducto(producto)"
             />
           </div>
@@ -20,11 +20,11 @@
           <div class="lista">
             <Element
               v-for="lote in this.lotes_filtrados"
+              :hidden="lote.hidden"
               :texto="lote.id"
               :tipo="lote.estado"
               :disabled="lote.estado == 'Bloqueado' ? true : false"
               :seleccionado="lote.id == clickadoLote"
-              :persona="lote.ult_usuario ? lote.ult_usuario :''"
               @click="clickarLote(lote)"
             />
           </div>
@@ -36,15 +36,16 @@
               v-for="test in this.tests_filtrados"
               :texto="test.nombre_muestreo"
               :tipo="test.estado"
-              :disabled="test.estado == 'Bloqueado' ? true : false"
+              :disabled="test.estado == 'Bloqueado' || (test.ult_usuario != this.authStore.user_email && (test.estado == 'Muestrando' || test.estado == 'Visualizando')) ? true : false"
               :seleccionado="test.id == clickadoTest"
               :persona="test.ult_usuario ? test.ult_usuario :''"
               @click="clickarTest(test)"
             />
           </div>
         </Panel>
-      </div>
-      <div class="botones">
+      </div>      
+      <div class="botones">        
+        <Toggle id="mostrarCompletados" v-model="mostrarCompletados" label="Mostrar terminados" @update:modelValue="mostrarTerminados"/>
         <Button @click="atras" 
           texto="Atrás" 
         />
@@ -64,6 +65,7 @@ import { useTestsStore } from '@/stores/testStore';
 import Button from '@/components/Button.vue';
 import Panel from '@/components/Panel.vue';
 import Element from '@/components/Element.vue';
+import Toggle from '@/components/Toggle.vue';
 
 export default {
   name: 'LotesView',
@@ -71,6 +73,7 @@ export default {
     Button,
     Panel,
     Element,
+    Toggle,
   },
   props: {
     statusPopup: Object,
@@ -88,6 +91,7 @@ export default {
       clickadoProducto: "",
       clickadoLote: "",
       clickadoTest: "",
+      mostrarCompletados: true,
     };
   },
   //Called when the component is created
@@ -118,22 +122,25 @@ export default {
                         lote.estado = test.estado;
                       } else if (test.estado == "Muestrando" || test.estado == "Visualizando") {
                         if (lote.estado != "Nuevo") {
-                          if (test.ult_usuario == this.authStore.user_email) {
-                            lote.estado = test.estado;
-                          } else {
-                            lote.estado = "Bloqueado";
-                            lote.persona = test.ult_usuario;
-                          }
+                            lote.estado = "Disponible";
                         }
                       } else if (test.estado == "Bloqueado") {
                         if (lote.estado != "Nuevo" && lote.estado != "Muestrando" && lote.estado != "Visualizando") {
-                          lote.estado = test.estado;
+                          lote.estado = "Bloqueado";
                         }
-                      } else {
+                      } else if (test.estado == "Disponible") {
                         if (lote.estado != "Nuevo" && lote.estado != "Muestrando" && lote.estado != "Visualizando" && lote.estado != "Bloqueado") {
                           lote.estado = "Disponible";
                         }
-                      }
+                      } else {
+                        if (lote.estado != "Nuevo" && lote.estado != "Muestrando" && lote.estado != "Visualizando" && lote.estado != "Bloqueado" && lote.estado != "Disponible") {
+                          if (this.mostrarCompletados) {
+                            lote.estado = test.estado;
+                          } else {
+                            lote.hidden = true;
+                          }
+                        }
+                      } 
 
                       break;
                     }                  
@@ -148,12 +155,19 @@ export default {
                     }
                   } else if (lote.estado == "Bloqueado") {
                     if (producto.estado != "Nuevo" && producto.estado != "Muestrando" && producto.estado != "Visualizando") {
-                      producto.estado = lote.estado;
-                      producto.persona = test.ult_usuario;
+                      producto.estado = "Bloqueado";
                     }
-                  } else {
+                  } else if (lote.estado == "Disponible") {
                     if (producto.estado != "Nuevo" && producto.estado != "Muestrando" && producto.estado != "Visualizando" && producto.estado != "Bloqueado") {
                       producto.estado = "Disponible";
+                    }
+                  } else {
+                    if (producto.estado != "Nuevo" && producto.estado != "Muestrando" && producto.estado != "Visualizando" && producto.estado != "Bloqueado" && producto.estado != "Disponible") {
+                      if (this.mostrarCompletados) {                        
+                        producto.estado = lote.estado;
+                      } else {
+                        producto.hidden = true;
+                      }
                     }
                   }
 
@@ -327,9 +341,31 @@ export default {
 
       if (test.estado == "Visualizando") {
         this.$router.push(`/test/${test.id}`);
+      } else if (test.estado == "Aceptado" || test.estado == "Rechazado") {
+        this.$router.push(`/resumenFinal/${test.id}`);
       } else {
         this.$router.push(`/muestreo/${test.id}`);
       }
+    },
+    /**
+     * @method mostrarTerminados
+     * @description Muestra u oculta los tests terminados.
+    */
+    mostrarTerminados() {
+      for (var producto of this.productos) {
+        if (producto.estado == "Aceptado" || producto.estado == "Rechazado") {
+          producto.hidden = !this.mostrarCompletados;
+        }
+      }
+      for (var lote of this.lotes) {
+        if (lote.estado == "Aceptado" || lote.estado == "Rechazado") {
+          lote.hidden = !this.mostrarCompletados;
+        }
+      }
+
+      this.clickadoTest = "";
+      this.clickadoLote = "";
+      this.clickadoProducto = "";
     },
 
     /**
@@ -393,6 +429,7 @@ export default {
 
 .botones {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 

@@ -17,7 +17,6 @@
       texto="Exámenes"
       :texto_notificacion="texto_examenes_nuevos"
       :tipo_notificacion="cualificado ? 'amarilla' : 'roja'"
-      disabled="true" 
     />
   </div>
 </template>
@@ -128,10 +127,12 @@ export default {
         
         // Cargar la información de tests nuevos.
         for (let i = 0; i < response.data.length; i++) {
-          if (response.data[i].nombre_muestreo.includes("Examen")) {
-            this.numero_examenes_nuevos++;
-          } else {
-            this.numero_lotes_nuevos++;
+          if (response.data[i].estado != "Aceptado" && response.data[i].estado != "Rechazado") {
+            if (response.data[i].nombre_muestreo.includes("Examen")) {
+              this.numero_examenes_nuevos++;
+            } else {
+              this.numero_lotes_nuevos++;
+            }
           }
         }
       } catch (error) {
