@@ -392,10 +392,10 @@ export default {
 .paneles {
   display: flex;
   justify-content: space-evenly;
-  min-width: 500px; 
+  min-width: 350px; 
 
-  padding-right: 20px;
-  padding-left: 20px;
+  padding-right: 10px;
+  padding-left: 10px;
   width: 100%;
 }
 

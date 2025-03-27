@@ -406,7 +406,7 @@ export default {
 .paneles {
   display: flex;
   justify-content: space-evenly;
-  min-width: 500px;
+  min-width: 400px;
 
   padding-right: 20px;
   padding-left: 20px;
@@ -430,6 +430,7 @@ export default {
 
 .botones {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }

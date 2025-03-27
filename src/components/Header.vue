@@ -288,4 +288,10 @@ export default {
     left: 10px;
   }
 }
+
+@media (max-width: 400px) {
+  .nombreYVersion {
+    display: none;
+  }
+}
 </style>

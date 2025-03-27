@@ -356,7 +356,7 @@ export default {
   display: flex;
   justify-content: space-evenly;
   align-items: flex-start;
-  min-width: 500px;
+  min-width: 350px;
   
   width: 100%;
 }
@@ -372,7 +372,7 @@ export default {
   align-items: center;
 
   width: 100%;
-  min-width: 500px;
+  min-width: 350px;
 
   margin-left: 10px;
   margin-right: 10px;
@@ -381,8 +381,9 @@ export default {
 .fila {
   width: 100%;  
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .fila-label {

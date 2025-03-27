@@ -95,4 +95,24 @@ main {
   justify-content: center;
   background-color: var(--color-fondo);
 }
+
+/* Add media query for small heights */
+@media (max-height: 500px) {
+  .container {
+    height: auto; /* Allow container to grow beyond viewport height */
+    min-height: 100vh;
+  }
+  
+  header, footer {
+    position: sticky; /* Make them sticky instead of fixed */
+  }
+  
+  header {
+    top: 0; /* Stick to the top */
+  }
+  
+  footer {
+    bottom: 0; /* Stick to the bottom */
+  }
+}
 </style>

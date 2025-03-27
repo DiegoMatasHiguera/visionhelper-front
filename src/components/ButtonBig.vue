@@ -10,7 +10,7 @@
 /**
  * @component ButtonBig
  * @description Un componente que muestra un botón gordo, con una imagen y texto.
- * @prop {String} imagen - La URL de la imagen que se mostrará en el botón.
+ * @prop {object} imagen - La imagen en sí que se mostrará en el botón (hay que pasarla como objeto, ojo)
  * @prop {String} texto - El texto que se mostrará en el botón.
  * @prop {String} tipo_notificacion - El tipo de notificación que se mostrará en el botón ("amarilla" | "roja").
  * @prop {String} texto_notificacion - El texto de la burbuja de notificaciones.
@@ -18,7 +18,7 @@
 export default {
     name: 'ButtonBig',
     props: {
-        imagen: String,
+        imagen: Object,
         imagen_color: {
             type: String,
             default: '',

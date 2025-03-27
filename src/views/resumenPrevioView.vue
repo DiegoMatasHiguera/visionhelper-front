@@ -315,17 +315,18 @@ export default {
 .paneles {
   display: flex;
   justify-content: space-evenly;
-  min-width: 500px;
+  min-width: 350px;
   max-width: 1200px; 
   
   width: 100%;
 }
 
 .resumen {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: var(--font-peso-medium);
+  text-align: start;
   
-  min-width: 450px; 
+  min-width: 350px; 
 }
 
 .limitado {
@@ -409,6 +410,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 750px) {

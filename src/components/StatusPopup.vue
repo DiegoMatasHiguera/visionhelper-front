@@ -335,7 +335,8 @@ export default {
 .popup-container {
   position: fixed;
   right: 20px;
-  width: 400px;
+  max-width: 400px;
+  min-width: 350px;
   background-color: var(--color-principal);
   border-radius: 8px;
   box-shadow: var(--shadow-focus-grande);

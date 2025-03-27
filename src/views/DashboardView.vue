@@ -1,11 +1,11 @@
 <template>
   <div class="box">      
     <ButtonBig @click="irAPerfil"
-      :imagen="'/src/assets/profile-icon.svg'" 
+      :imagen="profileIcon" 
       texto="Perfil" 
     />
     <ButtonBig @click="irALotes"
-      :imagen="'/src/assets/vial.svg'" 
+      :imagen="vialIcon" 
       texto="Lotes"
       :texto_notificacion="texto_lotes_nuevos"
       tipo_notificacion="amarilla"
@@ -13,7 +13,7 @@
       :title="!cualificado ? 'No puedes ver lotes hasta que no hagas el examen!' : ''" 
     />
     <ButtonBig @click="irAExamenes"
-      :imagen="'/src/assets/exam-icon.svg'" 
+      :imagen="examIcon" 
       texto="Exámenes"
       :texto_notificacion="texto_examenes_nuevos"
       :tipo_notificacion="cualificado ? 'amarilla' : 'roja'"
@@ -33,6 +33,10 @@ import { useAppInfoStore } from '@/stores/AppInfoStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useTestsStore } from '@/stores/testStore';
 import ButtonBig from '@/components/ButtonBig.vue';
+import profileIcon from '@/assets/profile-icon.svg';
+import vialIcon from '@/assets/vial.svg';
+import examIcon from '@/assets/exam-icon.svg';
+
 
 export default {
   name: 'DashboardView',
@@ -50,6 +54,10 @@ export default {
       AppInfoStore: '',
       authStore: '',
       testStore: '',
+      //Iconos
+      profileIcon,
+      vialIcon,
+      examIcon,
     };
   },
   computed: {

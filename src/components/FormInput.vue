@@ -100,10 +100,10 @@ label {
 }
 
 .form-input {
-  flex: 1 0 auto;
   height: 50px;
   padding: 12px;
   
+  max-width: 100%;
   min-width: 50px;
 
   border: var(--color-mas-oscuro) 4px solid;

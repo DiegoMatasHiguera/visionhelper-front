@@ -78,8 +78,8 @@
           <Toggle class="toggle-txiki" id="mostrar_muestreo" v-model="mostrar_muestreo" label="Mostrar ubicación en muestreo" :disabled="this.testStore.muestreo_info_adicional == null" :title="this.testStore.muestreo_info_adicional == null ? 'No hay info de muestreo': ''"/>
           </Panel>
           <div class="fila">
-            <ButtonBig @click="estado_actual == 'Revisando' && campo_actual == 'Fondo Negro' ? cambiarAFondoBlanco() : registrarUnidad(false)" texto="Aceptada" imagen_color="verde" :imagen="'/src/assets/aceptado.svg'" :disabled="checkIndisponibilidadBoton" :selected="this.estado_actual === 'Aceptada'"/>
-            <ButtonBig @click="registrarUnidad(true)" texto="Rechazada" imagen_color="rojo" :imagen="'/src/assets/rechazado.svg'" :disabled="checkIndisponibilidadBoton" :selected="this.estado_actual === 'Rechazada'"/>
+            <ButtonBig @click="estado_actual == 'Revisando' && campo_actual == 'Fondo Negro' ? cambiarAFondoBlanco() : registrarUnidad(false)" texto="Aceptada" imagen_color="verde" :imagen="aceptadoIcon" :disabled="checkIndisponibilidadBoton" :selected="this.estado_actual === 'Aceptada'"/>
+            <ButtonBig @click="registrarUnidad(true)" texto="Rechazada" imagen_color="rojo" :imagen="rechazadoIcon" :disabled="checkIndisponibilidadBoton" :selected="this.estado_actual === 'Rechazada'"/>
           </div>
           <Panel>
             <TextArea id="observaciones_unidad" v-model="observaciones_unidad" label="Observaciones de la unidad" placeholder="P. ej.: describir el defecto detectado..."/>
@@ -114,6 +114,8 @@ import TestResumenPanel from '@/components/TestResumenPanel.vue';
 import MuestreoBandejaPanel from '@/components/MuestreoBandejaPanel.vue';
 import dingSoundFile from '@/assets/ding.mp3';
 import registradoSoundFile from '@/assets/registrado.mp3';
+import aceptadoIcon from '@/assets/aceptado.svg';
+import rechazadoIcon from '@/assets/rechazado.svg';
 
 export default {
   name: 'TestView',
@@ -168,7 +170,10 @@ export default {
       window: {
           width: 0,
           height: 0
-      }
+      },
+      // Iconos
+      aceptadoIcon,
+      rechazadoIcon,
     };
   },
   computed: {
@@ -389,6 +394,10 @@ export default {
       } else {        
         this.pausa = false;
         if (this.estado_actual == "Aceptada" || this.estado_actual == "Rechazada" || this.estado_actual == "Pausado") {
+          if (this.estado_actual == "Aceptada" || this.estado_actual == "Rechazada") {
+            // Esto solo se ejecuta cuando no es pausa
+            this.campo_actual = "Fondo Negro";
+          }
           this.loadUnidad(this.unidades.length+1);  
         }
         this.sonido_sonado = false;
@@ -628,7 +637,7 @@ export default {
   display: flex;
   justify-content: space-evenly;
   align-items: flex-start;
-  min-width: 500px;
+  min-width: 350px;
   
   width: 100%;
 }
@@ -636,6 +645,7 @@ export default {
 .testinfo {
   min-height: 250px;
   justify-content: space-between;
+  text-align: start;
 }
 
 .columna {
@@ -688,6 +698,10 @@ Button {
 }
 
 @media (max-width: 750px) {
+  Button {
+    font-size: 12px;
+    min-width: 150px;
+  }
   .paneles {
     flex-direction: column-reverse;
     align-items: center;

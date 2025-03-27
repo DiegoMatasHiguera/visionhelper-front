@@ -419,7 +419,7 @@ export default {
 .paneles {
   display: flex;
   justify-content: space-evenly;
-  min-width: 500px; 
+  min-width: 350px; 
 
   width: 100%;
 }
@@ -431,7 +431,7 @@ export default {
   align-items: center;
 
   max-width: 600px;
-  min-width: 400px;
+  min-width: 350px;
 
   width: 100%;
   margin: 20px;
@@ -443,7 +443,7 @@ export default {
 .muestreo {
   font-size: 16px;
   font-weight: var(--font-peso-medium);
-  min-width: 450px; 
+  min-width: 350px; 
 }
 
 .fila {

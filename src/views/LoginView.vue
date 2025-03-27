@@ -142,8 +142,8 @@ export default {
   
   height: 100%;
   width: 100%;
-  max-width: 600px;
-  padding: 40px 20px;
+  max-width: 400px;
+  padding: 20px 20px;
   background-color: transparent;
 }
 
