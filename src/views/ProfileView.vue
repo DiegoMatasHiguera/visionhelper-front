@@ -211,9 +211,8 @@ export default {
         this.avatar_new = encodedFiles[0];
         // Set the source to the encoded file data
         img.src = encodedFiles[0];
-        if (this.hayAvatar) {
-          this.hayAvatar = true;
-        }
+
+        this.hayAvatar = true;
       } else {
         // If no file is selected, set the source to the current avatar URL
         img.src = this.avatar_new;
@@ -465,7 +464,9 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+
+  min-width: 500px;
 }
 
 .cambio-avatar-columna {
@@ -489,7 +490,7 @@ export default {
 
 .avatar-delimiter {
   top: 0px;
-  left: 63px;
+  left: 0px;
   position: absolute;
   z-index: 1;
 

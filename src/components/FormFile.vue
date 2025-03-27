@@ -12,6 +12,18 @@
       :disabled="disabled"
       @change="handleFileChange"
     >
+    <!-- Custom styled button -->
+    <button 
+      type="button" 
+      class="botonPeque" 
+      @click="triggerFileInput"
+    >
+      Seleccionar archivo{{ multiple ? 's' : '' }}
+    </button>
+    <!-- Display selected filenames -->
+    <div class="file-names">
+      {{ selectedFileNames }}
+    </div>
   </div>
 </template>
 
@@ -54,7 +66,18 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      selectedFileNames: 'No hay archivos seleccionados'
+    };
+  },
   methods: {
+    /**
+     * Trigger the hidden file input when custom button is clicked
+     */
+     triggerFileInput() {
+      this.$refs.files.click();
+    },
     /**
      * Maneja el evento de cambio de archivos y emite los datos codificados
      */
@@ -63,6 +86,13 @@ export default {
       if (!files || files.length === 0) {
         this.$emit('file-change', []);
         return;
+      }
+
+      // Update the displayed filenames
+      if (files.length === 1) {
+        this.selectedFileNames = files[0].name;
+      } else {
+        this.selectedFileNames = `${files.length} archivos seleccionados`;
       }
       
       const promises = [];
@@ -124,6 +154,8 @@ export default {
   align-items: center;
   margin: 7px;
 
+  flex-wrap: wrap;
+
   font-size: 18px;
 }
 
@@ -136,30 +168,23 @@ label {
 }
 
 .form-file {
-  border: var(--color-mas-oscuro) 4px solid;
-  border-radius: 8px;
-  background-color: var(--color-principal);
-
-  color: var(--color-mas-oscuro);
-
-  transition: box-shadow 0.3s ease-in-out;
+  display: none;
 }
 
-.form-file:focus {
+.botonPeque {
+  font-size: 14px;
+  background-color: var(--color-mas-oscuro);
+  box-shadow: 0px 2px 2px 1px rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  margin: 5px;
+}
+
+.botonPeque:hover {
   box-shadow: var(--shadow-focus-pequeno);
 }
 
-.form-file[disabled] {
-  background-color: var(--color-fondo);
-  border-width: 4px;
-  border-style: dashed;
-  cursor: not-allowed;
-
-  box-shadow: none;
-}
-
-.form-file[disabled]:hover {
-  box-shadow: none;
+.file-names {
+  font-size: 14px;
 }
 
 </style>
