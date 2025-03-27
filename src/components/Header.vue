@@ -232,7 +232,7 @@ export default {
 @media (max-width: 750px) {
   .secciones {
     flex-direction: column-reverse;
-    overflow: visible;
+    overflow: hidden;
 
     max-height: 70px;
   }

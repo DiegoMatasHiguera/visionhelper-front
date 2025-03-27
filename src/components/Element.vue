@@ -7,7 +7,7 @@
         <img v-if="tipo=='Bloqueado'" src="@/assets/rechazado.svg" alt="Bloqueado" class="icono"/>
         <img v-if="tipo=='Aceptado'" src="@/assets/aceptado.svg" alt="Aceptado" class="icono"/>
         <img v-if="tipo=='Rechazado'" src="@/assets/rechazado.svg" alt="Rechazado" class="icono"/>
-        <div v-if="persona!='' && (tipo=='Muestreando' || tipo=='Visualizando')" class="persona">({{ persona }})</div>
+        <div v-if="persona!='' && (tipo=='Muestrando' || tipo=='Visualizando')" class="persona">({{ persona }})</div>
     </button>
 </template>
 

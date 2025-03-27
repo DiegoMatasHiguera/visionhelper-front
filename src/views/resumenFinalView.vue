@@ -381,7 +381,7 @@ export default {
 .fila {
   width: 100%;  
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -430,6 +430,11 @@ Button {
 }
 
 @media (max-width: 750px) {
+  Button {
+    font-size: 12px;
+    min-width: 150px;
+  }
+  
   .paneles {
     flex-direction: column;
     align-items: center;
