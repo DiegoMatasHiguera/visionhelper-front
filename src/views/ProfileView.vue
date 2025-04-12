@@ -11,7 +11,7 @@
         </Panel>
         <Panel v-if="cambio_avatar" class="cambio-avatar">
           <div class="cambio-avatar-columna">
-            <div v-if="hayAvatar">
+            <div v-if="hayAvatar" class="avatar-container-parent">
               <div class="avatar-container" ref="avatarContainer" @scroll="updateScrollValues">                            
                 <img :src="avatar_new" alt="Avatar sin procesar" class="avatar-unprocessed" :style="{
                   width: `${getAvatarWidth()}px`,
@@ -473,7 +473,9 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
 
+.avatar-container-parent {
   position: relative;
 }
 
